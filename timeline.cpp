@@ -50,12 +50,13 @@ void Timeline::paintEvent(QPaintEvent *ev)
     initStyleOption(&opt);
 
     QRect groove = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderGroove, this);
+    QRect handle = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
 
-    paintSynchroPoints(p, groove);
+    paintSynchroPoints(p, groove, handle);
 }
 
 
-void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
+void Timeline::paintSynchroPoints(QPainter &p, QRect groove, QRect handle)
 {
     int left = groove.left();
     int right = groove.right();
@@ -70,7 +71,7 @@ void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
             t = 1.0;
         }
 
-        int x = left + int(t * w);
+        int x = left + int(t * w) + handle.width() / 2;
 
         QRect r(x - 3, y - 10, 6, 20);
 

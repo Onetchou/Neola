@@ -16,6 +16,8 @@ void MainWindow::updateSynchroPointList()
 
         ui->synchroPointList->addItem(item);
     }
+
+    highlightSelectedSynchroPoint();
 }
 
 
@@ -33,6 +35,7 @@ void MainWindow::handleSynchroPointListItemSelection()
     if (point.timestamp != -1)
     {
         m_selectedSynchroPoint = point;
+        highlightSelectedSynchroPoint();
 
         ui->nameEdit->blockSignals(true);
         ui->nameEdit->setText(point.name);
@@ -59,4 +62,23 @@ SynchroPoint MainWindow::getSelectedSynchroPoint()
     }
 
     return point;
+}
+
+void MainWindow::highlightSelectedSynchroPoint()
+{
+    //Higlight the line corresponding to m_selectedSynchroPoint in the synchro point list
+    for (int i = 0; i < ui->synchroPointList->count(); ++i)
+    {
+        QListWidgetItem* item = ui->synchroPointList->item(i);
+        SynchroPoint point = item->data(Qt::UserRole).value<SynchroPoint>();
+        if (point.id == m_selectedSynchroPoint.id)
+        {
+            item->setBackground(Qt::yellow);
+            ui->synchroPointList->scrollToItem(item);
+        }
+        else
+        {
+            item->setBackground(Qt::white);
+        }
+    }
 }

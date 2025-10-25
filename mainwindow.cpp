@@ -36,6 +36,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
+    ui->synchroPointList->setFocusPolicy(Qt::NoFocus);
+    ui->playButton->setFocusPolicy(Qt::NoFocus);
+    ui->insertStartPointButton->setFocusPolicy(Qt::NoFocus);
+    ui->insertStopPointButton->setFocusPolicy(Qt::NoFocus);
+    ui->syncButton->setFocusPolicy(Qt::NoFocus);
+
     connect(ui->actionImport_Audio,       &QAction::triggered,   this, &MainWindow::handleLoadAudioButton);
     connect(ui->actionInsert_stop_point,  &QAction::triggered,   this, &MainWindow::handleInsertStopPointButton);
     connect(ui->actionInsert_start_point, &QAction::triggered,   this, &MainWindow::handleInsertStartPointButton);
@@ -367,5 +373,21 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     if (event->key() == Qt::Key_Space)
     {
         handleSyncButton();
+    }
+    else if (event->key() == Qt::Key_Left)
+    {
+        ui->timestampSpinBox->setValue(ui->timestampSpinBox->value() - 100);
+    }
+    else if (event->key() == Qt::Key_Right)
+    {
+        ui->timestampSpinBox->setValue(ui->timestampSpinBox->value() + 100);
+    }
+    else if (event->key() == Qt::Key_P)
+    {
+        handlePlayButton();
+    }
+    else if (event->key() == Qt::Key_Escape)
+    {
+        setFocus();
     }
 }

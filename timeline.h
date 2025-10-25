@@ -39,7 +39,7 @@ private:
     SynchroPoints m_synchroPoints;
     qint64 m_duration = 0;
 
-    void paintSynchroPoints(QPainter &p, QRect groove);
+    void paintSynchroPoints(QPainter &p, QRect groove, QRect handle);
 };
 
 #endif // TIMELINE_H

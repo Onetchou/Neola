@@ -72,6 +72,7 @@ class MainWindow : public QMainWindow
         void findNextSynchroPoint(const qint64 posMs);
         void findNextStopPoint(const qint64 posMs);
         void findNextStartPoint(const qint64 posMs);
+        void highlightSelectedSynchroPoint();
         int getNewId();
 };
 #endif // MAINWINDOW_H

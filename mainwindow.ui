@@ -29,6 +29,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="insertStartPointButton">
+        <property name="text">
+         <string>Insert start point</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLineEdit" name="nameEdit"/>
       </item>
       <item>
@@ -45,9 +52,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="insertStartPointButton">
+       <widget class="QPushButton" name="previousPointButton">
         <property name="text">
-         <string>Insert start point</string>
+         <string>&lt;--</string>
         </property>
        </widget>
       </item>

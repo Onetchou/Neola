@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
     connect(ui->insertStartPointButton,   &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
     connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
+    connect(ui->previousPointButton,      &QPushButton::clicked, this, &MainWindow::handlePreviousPointButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
     connect(ui->synchroPointList, &QListWidget::itemSelectionChanged, this, &MainWindow::handleSynchroPointListItemSelection);
@@ -131,6 +132,17 @@ void MainWindow::handleInsertStartPointButton()
     qint64 pos = m_player->position();
     SynchroPoint point{ pos, "SyncStartPoint", StartPoint, getNewId()};
     addSynchroPoint(point);
+}
+
+
+void MainWindow::handlePreviousPointButton()
+{
+    qint64 pos = m_player->position();
+    SynchroPoint point = findPreviousSynchroPoint(pos);
+    if (point.timestamp != -1)
+    {
+        changePlayerPosition(point.timestamp);
+    }
 }
 
 

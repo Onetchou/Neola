@@ -43,6 +43,7 @@ class MainWindow : public QMainWindow
         void handleNew();
         void handleNameEdit();
         void handleTimestampSpinbox();
+        void handlePreviousPointButton();
         void keyPressEvent(QKeyEvent* event) override;
 
     private:
@@ -69,6 +70,7 @@ class MainWindow : public QMainWindow
 
         SynchroPoint getSelectedSynchroPoint();
         qint64 findNearestSynchroPoint(const qint64 posMs);
+        SynchroPoint findPreviousSynchroPoint(const qint64 posMs);
         void findNextSynchroPoint(const qint64 posMs);
         void findNextStopPoint(const qint64 posMs);
         void findNextStartPoint(const qint64 posMs);

@@ -44,6 +44,7 @@ void MainWindow::findNextSynchroPoint(const qint64 posMs)
         m_nextSynchroPoint.timestamp =  it->timestamp;
         m_nextSynchroPoint.name      = it->name;
         m_nextSynchroPoint.type      = it->type;
+        m_nextSynchroPoint.id        = it->id;
     }
 }
 
@@ -67,6 +68,33 @@ void MainWindow::findNextStartPoint(const qint64 posMs)
         findNextSynchroPoint(pos);
         pos = m_nextSynchroPoint.timestamp;
     }
+}
+
+
+SynchroPoint MainWindow::findPreviousSynchroPoint(const qint64 posMs)
+{
+    SynchroPoint previousSynchroPoint;
+    previousSynchroPoint.timestamp = -1;
+    previousSynchroPoint.name      = "";
+    previousSynchroPoint.type      = StopPoint;
+    previousSynchroPoint.id        = -1;
+
+    if (m_synchroPoints.isEmpty())
+    {
+        return previousSynchroPoint;
+    }
+
+    auto it = std::find_if(m_synchroPoints.rbegin(), m_synchroPoints.rend(), [posMs](const SynchroPoint &sp) { return sp.timestamp < posMs; });
+
+    if (it != m_synchroPoints.rend())
+    {
+        previousSynchroPoint.timestamp = it->timestamp;
+        previousSynchroPoint.name      = it->name;
+        previousSynchroPoint.type      = it->type;
+        previousSynchroPoint.id        = it->id;
+    }
+
+    return previousSynchroPoint;
 }
 
 

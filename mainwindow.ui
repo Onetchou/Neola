@@ -7,24 +7,92 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>480</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>MainWindow</string>
-  </property>
-  <widget class="QWidget" name="centralwidget"/>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>21</height>
-    </rect>
-   </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="topRow">
+      <item>
+       <widget class="QPushButton" name="loadButton">
+        <property name="text">
+         <string>Charger piste</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="playButton">
+        <property name="text">
+         <string>Play</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="insertMarkerButton">
+        <property name="text">
+         <string>Insérer marqueur</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="jumpMarkerButton">
+        <property name="text">
+         <string>Aller au marqueur proche</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveMarkersButton">
+        <property name="text">
+         <string>Sauvegarder marqueurs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="loadMarkersButton">
+        <property name="text">
+         <string>Charger marqueurs</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QWidget" name="positionWidget"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="timeAndList">
+      <item>
+       <widget class="QLabel" name="timeLabel">
+        <property name="text">
+         <string>0.00 / 0.00</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="markerList"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QSlider" name="zoomSlider">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>200</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

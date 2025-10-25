@@ -29,10 +29,34 @@ void MainWindow::handleSynchroPointListItemDoubleClicked(QListWidgetItem* item)
 
 void MainWindow::handleSynchroPointListItemSelection()
 {
-    QList<QListWidgetItem*> items = ui->synchroPointList->selectedItems();
-    if (items.size() == 1)
+    SynchroPoint point = getSelectedSynchroPoint();
+    if (point.timestamp != -1)
     {
-        SynchroPoint point = items.first()->data(Qt::UserRole).value<SynchroPoint>();
+        m_selectedSynchroPoint = point;
+
+        ui->nameEdit->blockSignals(true);
         ui->nameEdit->setText(point.name);
+        ui->nameEdit->blockSignals(false);
+
+        ui->timestampSpinBox->blockSignals(true);
+        ui->timestampSpinBox->setValue(point.timestamp);
+        ui->timestampSpinBox->blockSignals(false);
     }
+}
+
+
+SynchroPoint MainWindow::getSelectedSynchroPoint()
+{
+    SynchroPoint point;
+    point.timestamp = -1;
+    point.name      = "";
+    point.type      = StopPoint;
+
+    QList<QListWidgetItem*> selected_items = ui->synchroPointList->selectedItems();
+    if (selected_items.size() == 1)
+    {
+        point = selected_items.first()->data(Qt::UserRole).value<SynchroPoint>();
+    }
+
+    return point;
 }

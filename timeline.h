@@ -14,6 +14,7 @@ struct SynchroPoint
     qint64 timestamp;
     QString name;
     SynchroPointType type;
+    int id;
 };
 Q_DECLARE_METATYPE(SynchroPoint)
 
@@ -26,7 +27,7 @@ class Timeline : public QSlider
 public:
     explicit Timeline(QWidget *parent = nullptr);
 
-    void setSynchroPoint (const SynchroPoints& synchroPoints);
+    void setSynchroPoints (const SynchroPoints& synchroPoints);
     void setDuration(qint64 durationMs);
 
     const SynchroPoints& getSynchroPoints() const;

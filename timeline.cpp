@@ -14,7 +14,7 @@ Timeline::Timeline(QWidget *parent): QSlider(Qt::Horizontal, parent)
 }
 
 
-void Timeline::setSynchroPoint(const SynchroPoints &synchroPoints)
+void Timeline::setSynchroPoints(const SynchroPoints &synchroPoints)
 {
     m_synchroPoints = synchroPoints;
     update();

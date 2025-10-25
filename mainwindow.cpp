@@ -13,6 +13,7 @@
 #include <QCheckBox>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QSpinBox>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -20,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_settings(QCoreApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
+
+    m_selectedSynchroPoint = SynchroPoint{-1, "", StopPoint, 0};
 
     // Setup the timeline
     QWidget *place = ui->positionWidget;
@@ -40,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->actionSave_as,            &QAction::triggered,   this, &MainWindow::handleSaveButton);
     connect(ui->actionOpen,               &QAction::triggered,   this, &MainWindow::handleOpenButton);
     connect(ui->actionPreferences,        &QAction::triggered,   this, &MainWindow::handlePreferences);
+    connect(ui->actionNew,                &QAction::triggered,   this, &MainWindow::handleNew);
 
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
@@ -50,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->synchroPointList, &QListWidget::itemSelectionChanged, this, &MainWindow::handleSynchroPointListItemSelection);
 
     connect(ui->nameEdit, &QLineEdit::returnPressed, this, &MainWindow::handleNameEdit);
+
+    connect(ui->timestampSpinBox, &QSpinBox::valueChanged, this, &MainWindow::handleTimestampSpinbox);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
@@ -109,7 +115,7 @@ void MainWindow::handlePlayButton()
 void MainWindow::handleInsertStopPointButton()
 {
     qint64 pos = m_player->position();
-    SynchroPoint point{ pos, "", StopPoint};
+    SynchroPoint point{ pos, "SyncStopPoint", StopPoint, getNewId()};
     addSynchroPoint(point);
 }
 
@@ -117,7 +123,7 @@ void MainWindow::handleInsertStopPointButton()
 void MainWindow::handleInsertStartPointButton()
 {
     qint64 pos = m_player->position();
-    SynchroPoint point{ pos, "", StartPoint };
+    SynchroPoint point{ pos, "SyncStartPoint", StartPoint, getNewId()};
     addSynchroPoint(point);
 }
 
@@ -192,6 +198,7 @@ void MainWindow::handleSaveButton()
         obj["timestamp"] = m.timestamp;
         obj["name"] = m.name;
         obj["type"] = m.type == StartPoint ? "start" : "stop";
+        obj["id"] = m.id;
         arr.append(obj);
     }
     root["synchroPoints"] = arr;
@@ -240,7 +247,7 @@ void MainWindow::handleOpenButton()
     for (QJsonValueRef v : arr)
     {
         QJsonObject obj = v.toObject();
-        SynchroPoint point{obj["timestamp"].toInteger(), obj["name"].toString(), obj["type"].toString() == "start" ? StartPoint : StopPoint};
+        SynchroPoint point{obj["timestamp"].toInteger(), obj["name"].toString(), obj["type"].toString() == "start" ? StartPoint : StopPoint, obj["id"].toInt()};
         points.append(point);
     }
     sortSynchroPoints(points);
@@ -313,16 +320,44 @@ void MainWindow::handlePreferences()
 }
 
 
+void MainWindow::handleNew()
+{
+    m_audioPath.clear();
+    m_player->stop();
+    m_synchroPoints.clear();
+    m_selectedSynchroPoint = SynchroPoint{ -1, "", StartPoint, -1 };
+    updateSynchroPointList();
+    m_timeline->setSynchroPoints(m_synchroPoints);
+    m_timeline->setValue(0);
+    ui->timeLabel->setText("0.00 / 0.00");
+    ui->playButton->setText(tr("Play"));
+    ui->timestampSpinBox->setValue(0);
+    ui->nameEdit->setText("");
+}
+
+
 void MainWindow::handleNameEdit()
 {
     // Change the name of the selected item
-    QList<QListWidgetItem*> selected_items = ui->synchroPointList->selectedItems();
-    if (selected_items.size() == 1)
+    if (m_selectedSynchroPoint.timestamp != -1)
     {
-        SynchroPoint point = selected_items.first()->data(Qt::UserRole).value<SynchroPoint>();
-        point.name = ui->nameEdit->text();
-        updateSynchroPoint(m_synchroPoints, point);
+        m_selectedSynchroPoint.name = ui->nameEdit->text();
+        updateSynchroPoint(m_synchroPoints, m_selectedSynchroPoint);
         updateSynchroPointList();
+    }
+}
+
+
+void MainWindow::handleTimestampSpinbox()
+{
+    // Change the timestamp of the selected item
+    if (m_selectedSynchroPoint.timestamp != -1)
+    {
+        m_selectedSynchroPoint.timestamp = ui->timestampSpinBox->value();
+        updateSynchroPoint(m_synchroPoints, m_selectedSynchroPoint);
+        updateSynchroPointList();
+        m_timeline->setSynchroPoints(m_synchroPoints);
+        findNextSynchroPoint(m_player->position());
     }
 }
 

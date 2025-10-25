@@ -32,6 +32,19 @@
        <widget class="QLineEdit" name="nameEdit"/>
       </item>
       <item>
+       <widget class="QSpinBox" name="timestampSpinBox">
+        <property name="suffix">
+         <string>ms</string>
+        </property>
+        <property name="maximum">
+         <number>9999999</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="insertStartPointButton">
         <property name="text">
          <string>Insert start point</string>
@@ -79,8 +92,9 @@
     <property name="title">
      <string>Files</string>
     </property>
-    <addaction name="actionSave_as"/>
+    <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionSave_as"/>
     <addaction name="actionImport_Audio"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
@@ -129,6 +143,11 @@
   <action name="actionSync">
    <property name="text">
     <string>Sync</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
    </property>
   </action>
  </widget>

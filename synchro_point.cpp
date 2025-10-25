@@ -29,6 +29,7 @@ void MainWindow::findNextSynchroPoint(const qint64 posMs)
     m_nextSynchroPoint.timestamp = -1;
     m_nextSynchroPoint.name      = "";
     m_nextSynchroPoint.type      = StopPoint;
+    m_nextSynchroPoint.id        = -1;
 
     if (m_synchroPoints.isEmpty())
     {
@@ -85,7 +86,7 @@ void MainWindow::addSynchroPoint(const SynchroPoint &point)
     m_synchroPoints.append(point);
     sortSynchroPoints(m_synchroPoints);
 
-    m_timeline->setSynchroPoint(m_synchroPoints);
+    m_timeline->setSynchroPoints(m_synchroPoints);
     updateSynchroPointList();
 }
 
@@ -95,7 +96,7 @@ void MainWindow::setSynchroPoints(const SynchroPoints &points)
 {
     m_synchroPoints = points;
 
-    m_timeline->setSynchroPoint(m_synchroPoints);
+    m_timeline->setSynchroPoints(m_synchroPoints);
     updateSynchroPointList();
 }
 
@@ -104,10 +105,27 @@ void MainWindow::updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroP
 {
     for (SynchroPoint& sp : synchroPoints)
     {
-        if (sp.timestamp == point.timestamp)
+        if (sp.id == point.id)
         {
             sp.name = point.name;
             sp.type = point.type;
+            sp.timestamp = point.timestamp;
         }
     }
+}
+
+
+int MainWindow::getNewId()
+{
+    // Find the biggest id
+    int bestId = 0;
+    for (const SynchroPoint &sp : m_synchroPoints)
+    {
+        if (sp.id > bestId)
+        {
+            bestId = sp.id;
+        }
+    }
+
+    return bestId + 1;
 }

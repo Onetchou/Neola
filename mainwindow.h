@@ -40,7 +40,9 @@ class MainWindow : public QMainWindow
         void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
         void handleSynchroPointListItemSelection();
         void handlePreferences();
+        void handleNew();
         void handleNameEdit();
+        void handleTimestampSpinbox();
         void keyPressEvent(QKeyEvent* event) override;
 
     private:
@@ -54,6 +56,7 @@ class MainWindow : public QMainWindow
         QString m_audioPath;
         bool m_sliderPressed = false;
         SynchroPoint m_nextSynchroPoint;
+        SynchroPoint m_selectedSynchroPoint;
 
         void updateSynchroPointList();
         void updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroPoint& point);
@@ -64,9 +67,11 @@ class MainWindow : public QMainWindow
         void playPlayer();
         void pausePlayer();
 
+        SynchroPoint getSelectedSynchroPoint();
         qint64 findNearestSynchroPoint(const qint64 posMs);
         void findNextSynchroPoint(const qint64 posMs);
         void findNextStopPoint(const qint64 posMs);
         void findNextStartPoint(const qint64 posMs);
+        int getNewId();
 };
 #endif // MAINWINDOW_H

@@ -32,13 +32,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
-    connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
+    connect(ui->actionImport_Audio,       &QAction::triggered,   this, &MainWindow::handleLoadAudioButton);
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
-    connect(ui->insertStopPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
-    connect(ui->insertStartPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
+    connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
+    connect(ui->actionInsert_stop_point,  &QAction::triggered,   this, &MainWindow::handleInsertStopPointButton);
+    connect(ui->insertStartPointButton,   &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
+    connect(ui->actionInsert_start_point, &QAction::triggered,   this, &MainWindow::handleInsertStartPointButton);
     connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
-    connect(ui->saveButton,               &QPushButton::clicked, this, &MainWindow::handleSaveButton);
-    connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
+    connect(ui->actionSync,               &QAction::triggered,   this, &MainWindow::handleSyncButton);
+    connect(ui->actionSave_as,            &QAction::triggered,   this, &MainWindow::handleSaveButton);
+    connect(ui->actionOpen,               &QAction::triggered,   this, &MainWindow::handleOpenButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
 

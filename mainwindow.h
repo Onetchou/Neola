@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
         ~MainWindow();
 
     private slots:
-        void handleLoadButton();
+        void handleLoadAudioButton();
         void handlePlayButton();
         void handleInsertSynchroPointButton();
         void handleJumpToNearestSynchroPointButton();
@@ -31,8 +31,8 @@ class MainWindow : public QMainWindow
         void handleOpenButton();
         void handlePositionSliderPressed();
         void handlePositionSliderReleased();
-        void handlePlayerPositionChanged(qint64 pos);
-        void handlePlayerDurationChanged(qint64 dur);
+        void handlePlayerPositionChanged(const qint64 pos);
+        void handlePlayerDurationChanged(const qint64 dur);
 
     private:
         Ui::MainWindow *ui;
@@ -45,9 +45,11 @@ class MainWindow : public QMainWindow
         bool m_sliderPressed = false;
 
         void updateSynchroPointList();
-        void sortSynchroPoints();
+        void sortSynchroPoints(SynchroPoints &points);
+        void addSynchroPoint(const SynchroPoint &point);
+        void setSynchroPoints(const SynchroPoints &points);
 
 
-        qint64 findNearestSynchroPoint(qint64 posMs);
+        qint64 findNearestSynchroPoint(const qint64 posMs);
 };
 #endif // MAINWINDOW_H

@@ -8,8 +8,6 @@
 #include <QFile>
 #include <QPainter>
 #include <QDebug>
-#include <algorithm>
-#include <QDebug>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -29,12 +27,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
-    connect(ui->loadButton, &QPushButton::clicked, this, &MainWindow::handleLoadButton);
-    connect(ui->playButton, &QPushButton::clicked, this, &MainWindow::handlePlayButton);
+    connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
+    connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertSynchroPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertSynchroPointButton);
-    connect(ui->syncButton, &QPushButton::clicked, this, &MainWindow::handleJumpToNearestSynchroPointButton);
-    connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::handleSaveButton);
-    connect(ui->openButton, &QPushButton::clicked, this, &MainWindow::handleOpenButton);
+    connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleJumpToNearestSynchroPointButton);
+    connect(ui->saveButton,               &QPushButton::clicked, this, &MainWindow::handleSaveButton);
+    connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
@@ -50,9 +48,45 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::handleLoadButton()
+void MainWindow::handlePlayButton()
 {
-     QString file = QFileDialog::getOpenFileName(
+    if (m_player->playbackState() != QMediaPlayer::PlayingState)
+    {
+        m_player->play();
+        ui->playButton->setText(tr("Pause"));
+    }
+    else
+    {
+        m_player->pause();
+        ui->playButton->setText(tr("Play"));
+    }
+}
+
+
+void MainWindow::handleInsertSynchroPointButton()
+{
+    qint64 pos = m_player->position();
+    SynchroPoint point{ pos, "" };
+    addSynchroPoint(point);
+}
+
+
+void MainWindow::handleJumpToNearestSynchroPointButton()
+{
+    if (m_synchroPoints.isEmpty())
+    {
+        return;
+    }
+
+    qint64 pos = m_player->position();
+    qint64 target = findNearestSynchroPoint(pos);
+    m_player->setPosition(target);
+}
+
+
+void MainWindow::handleLoadAudioButton()
+{
+    QString file = QFileDialog::getOpenFileName(
         this,
         tr("Open Audio File"),
         QString(),
@@ -63,7 +97,7 @@ void MainWindow::handleLoadButton()
 
     if (file.isEmpty())
     {
-         return;
+        return;
     }
 
     m_audioPath = file;
@@ -77,7 +111,7 @@ void MainWindow::handleLoadButton()
 void MainWindow::handleSaveButton()
 {
     QString file = QFileDialog::getSaveFileName(this, tr("Save project"), QString(), tr("NEOLA (*.neola)"));
-    if (file.isEmpty()) 
+    if (file.isEmpty())
     {
         return;
     }
@@ -97,8 +131,8 @@ void MainWindow::handleSaveButton()
 
     QJsonDocument doc(root);
     QFile f(file);
-    if (!f.open(QIODevice::WriteOnly)) 
-    { 
+    if (!f.open(QIODevice::WriteOnly))
+    {
         qWarning() << "Unable to open " << file;
         return;
     }
@@ -111,19 +145,19 @@ void MainWindow::handleSaveButton()
 void MainWindow::handleOpenButton()
 {
     QString file = QFileDialog::getOpenFileName(this, tr("Load project"), QString(), tr("NEOLA (*.neola)"));
-    if (file.isEmpty()) 
+    if (file.isEmpty())
     {
         return;
     }
 
     QFile f(file);
     if (!f.open(QIODevice::ReadOnly))
-    { 
+    {
         return;
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
-    if (!doc.isObject()) 
+    if (!doc.isObject())
     {
         return;
     }
@@ -132,19 +166,20 @@ void MainWindow::handleOpenButton()
     m_audioPath = root.value("audioPath").toString();
 
     QJsonArray arr = root.value("synchroPoints").toArray();
-    m_synchroPoints.clear();
+
+    SynchroPoints points;
+
     for (QJsonValueRef v : arr)
     {
         QJsonObject obj = v.toObject();
-        SynchroPoint m{obj["timestamp"].toInteger(), obj["name"].toString()};
-        m_synchroPoints.append(m);
+        SynchroPoint point{obj["timestamp"].toInteger(), obj["name"].toString()};
+        points.append(point);
     }
-    sortSynchroPoints();
+    sortSynchroPoints(points);
 
-    m_timeline->setSynchroPoint(m_synchroPoints);
-    updateSynchroPointList();
+    setSynchroPoints(points);
 
-    if (!m_audioPath.isEmpty()) 
+    if (!m_audioPath.isEmpty())
     {
         m_player->setSource(QUrl::fromLocalFile(m_audioPath));
         m_player->stop(); // Start from the beginning of the file
@@ -153,22 +188,22 @@ void MainWindow::handleOpenButton()
 
 
 void MainWindow::handlePositionSliderPressed()
-{ 
-    m_sliderPressed = true; 
+{
+    m_sliderPressed = true;
 }
 
 
 void MainWindow::handlePositionSliderReleased()
-{ 
+{
     m_sliderPressed = false;
     qint64 pos = (m_player->duration() * qint64(m_timeline->value())) / 1000;
     m_player->setPosition(pos);
 }
 
 
-void MainWindow::handlePlayerPositionChanged(qint64 pos)
+void MainWindow::handlePlayerPositionChanged(const qint64 pos)
 {
-    if (!m_sliderPressed) 
+    if (!m_sliderPressed)
     {
         int val = (m_player->duration()>0) ? int((pos*1000)/m_player->duration()) : 0;
         m_timeline->blockSignals(true);
@@ -179,89 +214,7 @@ void MainWindow::handlePlayerPositionChanged(qint64 pos)
 }
 
 
-void MainWindow::handlePlayerDurationChanged(qint64 dur)
-{ 
+void MainWindow::handlePlayerDurationChanged(const qint64 dur)
+{
     m_timeline->setDuration(dur);
 }
-
-
-void MainWindow::updateSynchroPointList()
-{
-    ui->synchroPointList->clear();
-    for (const SynchroPoint &m : m_synchroPoints)
-    {
-         ui->synchroPointList->addItem("Name " + m.name + " : " + QString::number(m.timestamp/1000.0, 'f', 3) + " s");
-    }
-}
-
-
-qint64 MainWindow::findNearestSynchroPoint(qint64 posMs)
-{
-    if (m_synchroPoints.isEmpty())
-    {
-        return posMs;
-    }
-
-    qint64 best = m_synchroPoints.first().timestamp;
-    qint64 bestDist = llabs(best-posMs);
-    for (const SynchroPoint &m : m_synchroPoints)
-    {
-        qint64 d = llabs(m.timestamp-posMs);
-        if (d < bestDist) 
-        { 
-            bestDist=d; 
-            best=m.timestamp;
-        }
-    }
-    return best;
-}
-
-
-void MainWindow::handlePlayButton()
-{
-    if (m_player->playbackState() != QMediaPlayer::PlayingState) 
-    {
-        m_player->play();
-        ui->playButton->setText(tr("Pause"));
-    } 
-    else 
-    {
-        m_player->pause();
-        ui->playButton->setText(tr("Play"));
-    }
-}
-
-void MainWindow::sortSynchroPoints()
-{
-    auto compareSynchroPoints = [](const SynchroPoint &a, const SynchroPoint &b)
-    {
-        return a.timestamp < b.timestamp;
-    };
-
-    std::sort(m_synchroPoints.begin(), m_synchroPoints.end(), compareSynchroPoints);
-}
-
-
-void MainWindow::handleInsertSynchroPointButton()
-{
-    qint64 pos = m_player->position();
-    SynchroPoint m{ pos, "" };
-    m_synchroPoints.append(m);
-    sortSynchroPoints();
-
-    m_timeline->setSynchroPoint(m_synchroPoints);
-    updateSynchroPointList();
-}
-
-void MainWindow::handleJumpToNearestSynchroPointButton()
-{
-    if (m_synchroPoints.isEmpty())
-    {
-        return;
-    }
-
-    qint64 pos = m_player->position();
-    qint64 target = findNearestSynchroPoint(pos);
-    m_player->setPosition(target);
-}
-

@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
         mainwindow.ui
         timeline.h 
         timeline.cpp
+        synchro_point_list.cpp
+        synchro_point.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

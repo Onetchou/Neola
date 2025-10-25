@@ -15,7 +15,7 @@
     <item>
      <layout class="QHBoxLayout" name="topRow">
       <item>
-       <widget class="QPushButton" name="loadButton">
+       <widget class="QPushButton" name="loadAudioButton">
         <property name="text">
          <string>Select Audio</string>
         </property>

@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
 
+    setCurrentFile(QString());
     m_selectedSynchroPoint = SynchroPoint{-1, "", StopPoint, 0};
 
     // Setup the timeline
@@ -46,16 +47,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->actionInsert_stop_point,  &QAction::triggered,   this, &MainWindow::handleInsertStopPointButton);
     connect(ui->actionInsert_start_point, &QAction::triggered,   this, &MainWindow::handleInsertStartPointButton);
     connect(ui->actionSync,               &QAction::triggered,   this, &MainWindow::handleSyncButton);
-    connect(ui->actionSave_as,            &QAction::triggered,   this, &MainWindow::handleSaveButton);
+    connect(ui->actionSave_as,            &QAction::triggered,   this, &MainWindow::handleSaveAsButton);
     connect(ui->actionOpen,               &QAction::triggered,   this, &MainWindow::handleOpenButton);
     connect(ui->actionPreferences,        &QAction::triggered,   this, &MainWindow::handlePreferences);
     connect(ui->actionNew,                &QAction::triggered,   this, &MainWindow::handleNew);
+    connect(ui->actionSave,               &QAction::triggered,   this, &MainWindow::handleSave);
 
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
     connect(ui->insertStartPointButton,   &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
     connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
     connect(ui->previousPointButton,      &QPushButton::clicked, this, &MainWindow::handlePreviousPointButton);
+    connect(ui->restartButton,            &QPushButton::clicked, this, &MainWindow::handleRestartButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
     connect(ui->synchroPointList, &QListWidget::itemSelectionChanged, this, &MainWindow::handleSynchroPointListItemSelection);
@@ -91,7 +94,7 @@ void MainWindow::pausePlayer()
     if (m_player->playbackState() == QMediaPlayer::PlayingState)
     {
         m_player->pause();
-        ui->playButton->setText(tr("Play"));
+        ui->playButton->setText(tr("Play (P)"));
     }
 }
 
@@ -101,7 +104,7 @@ void MainWindow::playPlayer()
     if (m_player->playbackState() != QMediaPlayer::PlayingState)
     {
         m_player->play();
-        ui->playButton->setText(tr("Pause"));
+        ui->playButton->setText(tr("Pause (P)"));
     }
 }
 
@@ -146,6 +149,12 @@ void MainWindow::handlePreviousPointButton()
 }
 
 
+void MainWindow::handleRestartButton()
+{
+    changePlayerPosition(0);
+}
+
+
 void MainWindow::handleSyncButton()
 {
     qint64 pos = m_player->position();
@@ -181,8 +190,6 @@ void MainWindow::handleLoadAudioButton()
         tr("Audio Files (*.mp3 *.wav *.ogg);;All files (*)")
         );
 
-    qDebug() << "Chosen file :" << file;
-
     if (file.isEmpty())
     {
         return;
@@ -197,7 +204,7 @@ void MainWindow::handleLoadAudioButton()
 }
 
 
-void MainWindow::handleSaveButton()
+void MainWindow::handleSaveAsButton()
 {
     QString default_path = m_settings.value("paths/save", "").toString();
     QString file = QFileDialog::getSaveFileName(this, tr("Save project"), default_path, tr("NEOLA (*.neola)"));
@@ -206,6 +213,45 @@ void MainWindow::handleSaveButton()
         return;
     }
 
+    QJsonDocument doc = createJsonDocument();
+
+    QFile f(file);
+    if (!f.open(QIODevice::WriteOnly))
+    {
+        qWarning() << "Unable to open " << file;
+        return;
+    }
+
+    f.write(doc.toJson());
+    f.close();
+
+    setCurrentFile(file);
+}
+
+
+void MainWindow::handleSave()
+{
+    if (m_currentFile.isEmpty()) {
+        handleSaveAsButton();
+        return;
+    }
+
+    QJsonDocument doc = createJsonDocument();
+
+    QFile f(m_currentFile);
+    if (!f.open(QIODevice::WriteOnly))
+    {
+        qWarning() << "Unable to open " << m_currentFile;
+        return;
+    }
+
+    f.write(doc.toJson());
+    f.close();
+}
+
+
+QJsonDocument MainWindow::createJsonDocument()
+{
     QJsonObject root;
     root["audioPath"] = m_audioPath;
 
@@ -220,17 +266,9 @@ void MainWindow::handleSaveButton()
         arr.append(obj);
     }
     root["synchroPoints"] = arr;
-
     QJsonDocument doc(root);
-    QFile f(file);
-    if (!f.open(QIODevice::WriteOnly))
-    {
-        qWarning() << "Unable to open " << file;
-        return;
-    }
 
-    f.write(doc.toJson());
-    f.close();
+    return doc;
 }
 
 
@@ -278,6 +316,8 @@ void MainWindow::handleOpenButton()
         m_player->stop(); // Start from the beginning of the file
         findNextSynchroPoint(0);
     }
+
+    setCurrentFile(file);
 }
 
 
@@ -342,6 +382,7 @@ void MainWindow::handlePreferences()
 
 void MainWindow::handleNew()
 {
+    setCurrentFile(QString());
     m_audioPath.clear();
     m_player->stop();
     m_synchroPoints.clear();
@@ -382,6 +423,20 @@ void MainWindow::handleTimestampSpinbox()
 }
 
 
+void MainWindow::setCurrentFile(QString file)
+{
+    m_currentFile = file;
+    if (file.isEmpty())
+    {
+        setWindowTitle("Neola [untitled]");
+    }
+    else
+    {
+        setWindowTitle("Neola [" + file + "]");
+    }
+}
+
+
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Space)
@@ -415,5 +470,29 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if (event->key() == Qt::Key_2)
     {
         handleInsertStartPointButton();
+    }
+    else if (event->key() == Qt::Key_Q)
+    {
+        handleRestartButton();
+    }
+    else if (event->key() == Qt::Key_I)
+    {
+        handleLoadAudioButton();
+    }
+    else if (event->key() == Qt::Key_N)
+    {
+        handleNew();
+    }
+    else if (event->key() == Qt::Key_O)
+    {
+        handleOpenButton();
+    }
+    else if (event->key() == Qt::Key_S && event->modifiers() & Qt::ControlModifier && event->modifiers() & Qt::ShiftModifier)
+    {
+        handleSaveAsButton();
+    }
+    else if (event->key() == Qt::Key_S && event->modifiers() & Qt::ControlModifier)
+    {
+        handleSave();
     }
 }

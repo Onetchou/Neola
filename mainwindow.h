@@ -31,7 +31,8 @@ class MainWindow : public QMainWindow
         void handleInsertStopPointButton();
         void handleInsertStartPointButton();
         void handleSyncButton();
-        void handleSaveButton();
+        void handleSaveAsButton();
+        void handleSave();
         void handleOpenButton();
         void handlePositionSliderPressed();
         void handlePositionSliderReleased();
@@ -44,6 +45,7 @@ class MainWindow : public QMainWindow
         void handleNameEdit();
         void handleTimestampSpinbox();
         void handlePreviousPointButton();
+        void handleRestartButton();
         void keyPressEvent(QKeyEvent* event) override;
 
     private:
@@ -53,6 +55,7 @@ class MainWindow : public QMainWindow
         Timeline *m_timeline = nullptr;
 
         QSettings m_settings;
+        QString m_currentFile;
         SynchroPoints m_synchroPoints;
         QString m_audioPath;
         bool m_sliderPressed = false;
@@ -67,7 +70,8 @@ class MainWindow : public QMainWindow
         void changePlayerPosition(const qint64 pos);
         void playPlayer();
         void pausePlayer();
-
+        void setCurrentFile(QString file);
+        QJsonDocument createJsonDocument();
         SynchroPoint getSelectedSynchroPoint();
         qint64 findNearestSynchroPoint(const qint64 posMs);
         SynchroPoint findPreviousSynchroPoint(const qint64 posMs);

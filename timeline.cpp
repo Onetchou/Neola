@@ -9,6 +9,8 @@ Timeline::Timeline(QWidget *parent): QSlider(Qt::Horizontal, parent)
 {
     setMinimum(0);
     setMaximum(1000);
+    setSingleStep(0);
+    setPageStep(0);
 }
 
 
@@ -52,6 +54,7 @@ void Timeline::paintEvent(QPaintEvent *ev)
     paintSynchroPoints(p, groove);
 }
 
+
 void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
 {
     int left = groove.left();
@@ -70,7 +73,22 @@ void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
         int x = left + int(t * w);
 
         QRect r(x - 3, y - 10, 6, 20);
-        p.fillRect(r, Qt::red);
+
+        if (m_nextSynchroPoint == m.timestamp)
+        {
+            p.fillRect(r, Qt::red);
+        }
+        else
+        {
+            p.fillRect(r, Qt::blue);
+        }
+
         p.drawText(x + 2, y - 12, m.name);
     }
+}
+
+
+void Timeline::setNextSynchroPoint(qint64 timestamp)
+{
+    m_nextSynchroPoint = timestamp;
 }

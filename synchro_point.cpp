@@ -24,11 +24,12 @@ qint64 MainWindow::findNearestSynchroPoint(const qint64 posMs)
 }
 
 
-qint64 MainWindow::findNextSynchroPoint(const qint64 posMs)
+void MainWindow::findNextSynchroPoint(const qint64 posMs)
 {
+    m_nextSynchroPoint = -1;
     if (m_synchroPoints.isEmpty())
     {
-        return -1;
+        return;
     }
 
     auto compareSynchroPointAndTimestamp = [](const SynchroPoint &sp, qint64 ts)
@@ -39,10 +40,10 @@ qint64 MainWindow::findNextSynchroPoint(const qint64 posMs)
 
     if (it != m_synchroPoints.end())
     {
-        return it->timestamp;
+        m_nextSynchroPoint =  it->timestamp;
     }
 
-    return -1;
+    m_timeline->setNextSynchroPoint(m_nextSynchroPoint);
 }
 
 

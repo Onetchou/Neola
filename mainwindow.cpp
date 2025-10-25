@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertSynchroPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertSynchroPointButton);
-    connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleJumpToNearestSynchroPointButton);
+    connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
     connect(ui->saveButton,               &QPushButton::clicked, this, &MainWindow::handleSaveButton);
     connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
@@ -62,7 +62,7 @@ MainWindow::~MainWindow()
 void MainWindow::changePlayerPosition(const qint64 pos)
 {
     m_player->setPosition(pos);
-    m_nextSynchroPoint = findNextSynchroPoint(pos);
+    findNextSynchroPoint(pos);
 }
 
 
@@ -107,7 +107,7 @@ void MainWindow::handleInsertSynchroPointButton()
 }
 
 
-void MainWindow::handleJumpToNearestSynchroPointButton()
+void MainWindow::handleSyncButton()
 {
     if (m_synchroPoints.isEmpty())
     {
@@ -140,7 +140,7 @@ void MainWindow::handleLoadAudioButton()
     m_audioPath = file;
     m_player->setSource(QUrl::fromLocalFile(file));
     m_player->stop(); // Start from the beginning of the file
-    m_nextSynchroPoint = findNextSynchroPoint(0);
+    findNextSynchroPoint(0);
 
     ui->playButton->setText(tr("Play"));
 }
@@ -223,7 +223,7 @@ void MainWindow::handleOpenButton()
     {
         m_player->setSource(QUrl::fromLocalFile(m_audioPath));
         m_player->stop(); // Start from the beginning of the file
-        m_nextSynchroPoint = findNextSynchroPoint(0);
+        findNextSynchroPoint(0);
     }
 }
 
@@ -248,19 +248,20 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
     {
         // Display the current position
         int val = (m_player->duration()>0) ? int((pos*1000)/m_player->duration()) : 0;
+        m_timeline->setNextSynchroPoint(m_nextSynchroPoint);
         m_timeline->blockSignals(true);
         m_timeline->setValue(val);
         m_timeline->blockSignals(false);
         ui->timeLabel->setText(QString("%1 / %2").arg(QString::number(pos/1000.0,'f',2)).arg(QString::number(m_player->duration()/1000.0,'f',2)));
 
         // Check for synchro point
-        if ( pos > m_nextSynchroPoint )
+        if ( m_nextSynchroPoint != -1 && pos > m_nextSynchroPoint )
         {
             if (m_waitAtSynchroPoint)
             {
                 pausePlayer();
             }
-            m_nextSynchroPoint = findNextSynchroPoint(pos);
+            findNextSynchroPoint(pos);
         }
 
     }

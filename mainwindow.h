@@ -29,7 +29,7 @@ class MainWindow : public QMainWindow
         void handleLoadAudioButton();
         void handlePlayButton();
         void handleInsertSynchroPointButton();
-        void handleJumpToNearestSynchroPointButton();
+        void handleSyncButton();
         void handleSaveButton();
         void handleOpenButton();
         void handlePositionSliderPressed();
@@ -62,6 +62,6 @@ class MainWindow : public QMainWindow
         void pausePlayer();
 
         qint64 findNearestSynchroPoint(const qint64 posMs);
-        qint64 findNextSynchroPoint(const qint64 posMs);
+        void findNextSynchroPoint(const qint64 posMs);
 };
 #endif // MAINWINDOW_H

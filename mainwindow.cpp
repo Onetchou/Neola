@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QPainter>
 #include <QDebug>
+#include <QCheckBox>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -27,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
+    m_waitAtSynchroPoint = ui->waitCheckbox->isChecked();
+
     connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertSynchroPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertSynchroPointButton);
@@ -35,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
+
+    connect(ui->waitCheckbox, &QCheckBox::toggled, this, &MainWindow::handleWaitCheckbox);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
@@ -50,17 +55,42 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::handlePlayButton()
+void MainWindow::changePlayerPosition(const qint64 pos)
+{
+    m_player->setPosition(pos);
+    m_nextSynchroPoint = findNextSynchroPoint(pos);
+}
+
+
+void MainWindow::pausePlayer()
+{
+    if (m_player->playbackState() == QMediaPlayer::PlayingState)
+    {
+        m_player->pause();
+        ui->playButton->setText(tr("Play"));
+    }
+}
+
+
+void MainWindow::playPlayer()
 {
     if (m_player->playbackState() != QMediaPlayer::PlayingState)
     {
         m_player->play();
         ui->playButton->setText(tr("Pause"));
     }
+}
+
+
+void MainWindow::handlePlayButton()
+{
+    if (m_player->playbackState() != QMediaPlayer::PlayingState)
+    {
+        playPlayer();
+    }
     else
     {
-        m_player->pause();
-        ui->playButton->setText(tr("Play"));
+        pausePlayer();
     }
 }
 
@@ -82,7 +112,7 @@ void MainWindow::handleJumpToNearestSynchroPointButton()
 
     qint64 pos = m_player->position();
     qint64 target = findNearestSynchroPoint(pos);
-    m_player->setPosition(target);
+    changePlayerPosition(target);
 }
 
 
@@ -105,6 +135,7 @@ void MainWindow::handleLoadAudioButton()
     m_audioPath = file;
     m_player->setSource(QUrl::fromLocalFile(file));
     m_player->stop(); // Start from the beginning of the file
+    m_nextSynchroPoint = findNextSynchroPoint(0);
 
     ui->playButton->setText(tr("Play"));
 }
@@ -185,6 +216,7 @@ void MainWindow::handleOpenButton()
     {
         m_player->setSource(QUrl::fromLocalFile(m_audioPath));
         m_player->stop(); // Start from the beginning of the file
+        m_nextSynchroPoint = findNextSynchroPoint(0);
     }
 }
 
@@ -199,7 +231,7 @@ void MainWindow::handlePositionSliderReleased()
 {
     m_sliderPressed = false;
     qint64 pos = (m_player->duration() * qint64(m_timeline->value())) / 1000;
-    m_player->setPosition(pos);
+    changePlayerPosition(pos);
 }
 
 
@@ -207,11 +239,23 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
 {
     if (!m_sliderPressed)
     {
+        // Display the current position
         int val = (m_player->duration()>0) ? int((pos*1000)/m_player->duration()) : 0;
         m_timeline->blockSignals(true);
         m_timeline->setValue(val);
         m_timeline->blockSignals(false);
         ui->timeLabel->setText(QString("%1 / %2").arg(QString::number(pos/1000.0,'f',2)).arg(QString::number(m_player->duration()/1000.0,'f',2)));
+
+        // Check for synchro point
+        if ( pos > m_nextSynchroPoint )
+        {
+            if (m_waitAtSynchroPoint)
+            {
+                pausePlayer();
+            }
+            m_nextSynchroPoint = findNextSynchroPoint(pos);
+        }
+
     }
 }
 
@@ -219,4 +263,10 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
 void MainWindow::handlePlayerDurationChanged(const qint64 dur)
 {
     m_timeline->setDuration(dur);
+}
+
+
+void MainWindow::handleWaitCheckbox(const bool checked)
+{
+    m_waitAtSynchroPoint = checked;
 }

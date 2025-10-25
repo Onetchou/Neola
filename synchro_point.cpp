@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 
+#include <algorithm>
 
-qint64 MainWindow::findNearestSynchroPoint(qint64 posMs)
+qint64 MainWindow::findNearestSynchroPoint(const qint64 posMs)
 {
     if (m_synchroPoints.isEmpty())
     {
@@ -20,6 +21,28 @@ qint64 MainWindow::findNearestSynchroPoint(qint64 posMs)
         }
     }
     return best;
+}
+
+
+qint64 MainWindow::findNextSynchroPoint(const qint64 posMs)
+{
+    if (m_synchroPoints.isEmpty())
+    {
+        return -1;
+    }
+
+    auto compareSynchroPointAndTimestamp = [](const SynchroPoint &sp, qint64 ts)
+    {
+        return sp.timestamp < ts;
+    };
+    auto it = std::lower_bound(m_synchroPoints.begin(), m_synchroPoints.end(), posMs + 1, compareSynchroPointAndTimestamp); // +1 to avoid returning the current point
+
+    if (it != m_synchroPoints.end())
+    {
+        return it->timestamp;
+    }
+
+    return -1;
 }
 
 

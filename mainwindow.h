@@ -35,6 +35,7 @@ class MainWindow : public QMainWindow
         void handlePlayerPositionChanged(const qint64 pos);
         void handlePlayerDurationChanged(const qint64 dur);
         void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
+        void handleWaitCheckbox(const bool checked);
 
     private:
         Ui::MainWindow *ui;
@@ -45,13 +46,18 @@ class MainWindow : public QMainWindow
         SynchroPoints m_synchroPoints;
         QString m_audioPath;
         bool m_sliderPressed = false;
+        bool m_waitAtSynchroPoint;
+        qint64 m_nextSynchroPoint;
 
         void updateSynchroPointList();
         void sortSynchroPoints(SynchroPoints &points);
         void addSynchroPoint(const SynchroPoint &point);
         void setSynchroPoints(const SynchroPoints &points);
-
+        void changePlayerPosition(const qint64 pos);
+        void playPlayer();
+        void pausePlayer();
 
         qint64 findNearestSynchroPoint(const qint64 posMs);
+        qint64 findNextSynchroPoint(const qint64 posMs);
 };
 #endif // MAINWINDOW_H

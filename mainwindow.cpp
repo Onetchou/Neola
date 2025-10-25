@@ -402,4 +402,16 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     {
         setFocus();
     }
+    else if (event->key() == Qt::Key_B)
+    {
+        handlePreviousPointButton();
+    }
+    else if (event->key() == Qt::Key_1)
+    {
+        handleInsertStopPointButton();
+    }
+    else if (event->key() == Qt::Key_2)
+    {
+        handleInsertStartPointButton();
+    }
 }

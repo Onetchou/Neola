@@ -18,10 +18,12 @@ This system ensures that the soloist can perform freely while keeping the accomp
 ## Usage
 
 1. Load the pre-recorded accompaniment.  
-2. Define synchronization points where the orchestra should stop and start.  
-3. During the performance, press the pedal or a key to resume the orchestra at the appropriate moment.  
+2. Define synchronization points where the orchestra should stop and start.
+3. Press Escape to use the keyboard shortcuts.
+4. To adjust the position of the synchronization points, select a point in the list, click play (P) and use the "<--" button (B) to jump to the previous synchronization point and feel its timing. Adjust the timing using the spinbox (or the right & left arrow keys).
+5. During the performance, press the spacebar to bring the orchestra back in at the appropriate moment. It is recommended to use a USB pedal and to map it to the spacebar.
 
 
-## Requirements
+## Software requirements
 
 Programmed using Qt6.5.3 with MSVC2019 64bit

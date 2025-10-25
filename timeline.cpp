@@ -74,11 +74,16 @@ void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
 
         QRect r(x - 3, y - 10, 6, 20);
 
-        if (m_nextSynchroPoint == m.timestamp)
+        if (m.type == StartPoint)
+        {
+            p.fillRect(r, Qt::green);
+        }
+        else
         {
             p.fillRect(r, Qt::red);
         }
-        else
+
+        if (m_nextSynchroPoint == m.timestamp)
         {
             p.fillRect(r, Qt::blue);
         }

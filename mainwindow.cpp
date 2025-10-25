@@ -34,7 +34,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
-    connect(ui->insertSynchroPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertSynchroPointButton);
+    connect(ui->insertStopPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
+    connect(ui->insertStartPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
     connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
     connect(ui->saveButton,               &QPushButton::clicked, this, &MainWindow::handleSaveButton);
     connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
@@ -99,10 +100,18 @@ void MainWindow::handlePlayButton()
 }
 
 
-void MainWindow::handleInsertSynchroPointButton()
+void MainWindow::handleInsertStopPointButton()
 {
     qint64 pos = m_player->position();
-    SynchroPoint point{ pos, "" };
+    SynchroPoint point{ pos, "", StopPoint};
+    addSynchroPoint(point);
+}
+
+
+void MainWindow::handleInsertStartPointButton()
+{
+    qint64 pos = m_player->position();
+    SynchroPoint point{ pos, "", StartPoint };
     addSynchroPoint(point);
 }
 
@@ -164,6 +173,7 @@ void MainWindow::handleSaveButton()
         QJsonObject obj;
         obj["timestamp"] = m.timestamp;
         obj["name"] = m.name;
+        obj["type"] = m.type == StartPoint ? "start" : "stop";
         arr.append(obj);
     }
     root["synchroPoints"] = arr;

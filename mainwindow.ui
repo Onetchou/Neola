@@ -29,9 +29,16 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="insertSynchroPointButton">
+       <widget class="QPushButton" name="insertStopPointButton">
         <property name="text">
-         <string>Insert Synchro Point</string>
+         <string>Stop point</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="insertStartPointButton">
+        <property name="text">
+         <string>Start point</string>
         </property>
        </widget>
       </item>

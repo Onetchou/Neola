@@ -9,8 +9,9 @@ void MainWindow::updateSynchroPointList()
     {
         QString timestampString = QString::number(point.timestamp/1000.0, 'f', 3) + " s";
         QString nameString = point.name.isEmpty() ? "" : point.name + " : ";
+        QString typeString = (point.type == StartPoint) ? " [Start]" : " [Stop]";
 
-        QListWidgetItem* item = new QListWidgetItem(nameString + timestampString);
+        QListWidgetItem* item = new QListWidgetItem(nameString + timestampString + typeString);
         item->setData(Qt::UserRole, QVariant::fromValue(point));
 
         ui->synchroPointList->addItem(item);

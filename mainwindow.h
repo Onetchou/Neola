@@ -28,7 +28,8 @@ class MainWindow : public QMainWindow
     private slots:
         void handleLoadAudioButton();
         void handlePlayButton();
-        void handleInsertSynchroPointButton();
+        void handleInsertStopPointButton();
+        void handleInsertStartPointButton();
         void handleSyncButton();
         void handleSaveButton();
         void handleOpenButton();

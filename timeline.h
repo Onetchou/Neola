@@ -3,10 +3,17 @@
 
 #include <QSlider>
 
+enum SynchroPointType
+{
+    StartPoint,
+    StopPoint
+};
+
 struct SynchroPoint
 {
     qint64 timestamp;
     QString name;
+    SynchroPointType type;
 };
 Q_DECLARE_METATYPE(SynchroPoint)
 

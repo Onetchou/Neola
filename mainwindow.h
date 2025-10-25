@@ -27,17 +27,16 @@ class MarkerSlider : public QSlider
 {
     Q_OBJECT
     public:
-    explicit MarkerSlider(QWidget *parent = nullptr);
-    void setMarkers(const QVector<Marker>& markers);
-    const QVector<Marker>& markers() const { return m_markers; }
-    void setDuration(qint64 durationMs);
-    void setZoomFactor(double factor); // 1.0 = 100%
-    protected:
-    void paintEvent(QPaintEvent *ev) override;
-    private:
-    QVector<Marker> m_markers;
-    qint64 m_duration = 0;
-    double m_zoomFactor = 1.0;
+        explicit MarkerSlider(QWidget *parent = nullptr);
+        void setMarkers(const QVector<Marker>& markers);
+        const QVector<Marker>& markers() const { return m_markers; }
+        void setDuration(qint64 durationMs);
+        void setZoomFactor(double factor); // 1.0 = 100%
+        protected:
+        void paintEvent(QPaintEvent *ev) override;
+        private:
+        QVector<Marker> m_markers;
+        qint64 m_duration = 0;
 };
 
 
@@ -60,8 +59,6 @@ class MainWindow : public QMainWindow
         void on_positionSliderReleased();
         void on_playerPositionChanged(qint64 pos);
         void on_playerDurationChanged(qint64 dur);
-        void on_zoomSliderValueChanged(int value);
-
 
     private:
         Ui::MainWindow *ui;
@@ -72,8 +69,6 @@ class MainWindow : public QMainWindow
         QString m_audioPath;
         bool m_sliderPressed = false;
         int m_nextMeasureNumber = 1;
-
-
         void updateMarkerList();
         qint64 findNearestMarker(qint64 posMs);
 };

@@ -22,20 +22,18 @@ MarkerSlider::MarkerSlider(QWidget *parent): QSlider(Qt::Horizontal, parent)
     setMaximum(1000); 
 }
 
+
 void MarkerSlider::setMarkers(const QVector<Marker> &markers) 
 { 
     m_markers = markers; update(); 
 }
+
 
 void MarkerSlider::setDuration(qint64 durationMs) 
 { 
     m_duration = durationMs; update(); 
 }
 
-void MarkerSlider::setZoomFactor(double factor) 
-{ 
-    m_zoomFactor = factor; update(); 
-}
 
 void MarkerSlider::paintEvent(QPaintEvent *ev)
 {
@@ -60,7 +58,6 @@ void MarkerSlider::paintEvent(QPaintEvent *ev)
     for (const Marker &m : m_markers) 
     {
         double t = double(m.positionMs) / m_duration;
-        t *= m_zoomFactor;
         if (t > 1.0) t = 1.0;
         int x = left + int(t * w);
         int y = groove.center().y();
@@ -69,6 +66,7 @@ void MarkerSlider::paintEvent(QPaintEvent *ev)
         p.drawText(x + 2, y - 12, QString::number(m.measureNumber));
     }
 }
+
 
 void MainWindow::on_loadButtonClicked()
 {
@@ -93,6 +91,7 @@ void MainWindow::on_loadButtonClicked()
     ui->playButton->setText(tr("Play"));  // Réinitialise le bouton Play
     m_nextMeasureNumber = 1;  // Réinitialise la numérotation des marqueurs
 }
+
 
 void MainWindow::on_saveMarkersButtonClicked()
 {
@@ -121,6 +120,7 @@ void MainWindow::on_saveMarkersButtonClicked()
     f.write(doc.toJson());
     f.close();
 }
+
 
 void MainWindow::on_loadMarkersButtonClicked()
 {
@@ -164,15 +164,18 @@ void MainWindow::on_loadMarkersButtonClicked()
     }
 }
 
+
 void MainWindow::on_positionSliderPressed()
 { 
     m_sliderPressed = true; 
 }
 
+
 void MainWindow::on_positionSliderReleased()
 { 
     m_sliderPressed = false; qint64 pos = (m_player->duration() * qint64(m_markerSlider->value())) / 1000; m_player->setPosition(pos); 
 }
+
 
 void MainWindow::on_playerPositionChanged(qint64 pos)
 {
@@ -186,10 +189,12 @@ void MainWindow::on_playerPositionChanged(qint64 pos)
     }
 }
 
+
 void MainWindow::on_playerDurationChanged(qint64 dur)
 { 
     m_markerSlider->setDuration(dur); 
 }
+
 
 void MainWindow::updateMarkerList()
 {
@@ -200,6 +205,7 @@ void MainWindow::updateMarkerList()
                             " : " + QString::number(m.positionMs/1000.0, 'f', 3) + " s");
     }
 }
+
 
 qint64 MainWindow::findNearestMarker(qint64 posMs)
 {
@@ -221,11 +227,6 @@ qint64 MainWindow::findNearestMarker(qint64 posMs)
     return best;
 }
 
-void MainWindow::on_zoomSliderValueChanged(int value)
-{
-    double factor = 1.0 + value/100.0; // 100 -> 2x zoom
-    m_markerSlider->setZoomFactor(factor);
-}
 
 void MainWindow::on_playButtonClicked()
 {
@@ -240,6 +241,7 @@ void MainWindow::on_playButtonClicked()
         ui->playButton->setText(tr("Play"));
     }
 }
+
 
 void MainWindow::on_insertMarkerButtonClicked()
 {
@@ -302,7 +304,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::on_playerDurationChanged);
 
 
-    connect(ui->zoomSlider, &QSlider::valueChanged, this, &MainWindow::on_zoomSliderValueChanged);
 }
 
 MainWindow::~MainWindow()

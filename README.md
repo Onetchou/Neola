@@ -1,4 +1,4 @@
-# Neola
+# Neola : a software for soloist-orchestra synchronization
 
 Neola is a software tool designed to help a soloist synchronize with a pre-recorded accompaniment. It allows the soloist to maintain full freedom in their interpretation while being "followed" by the orchestra.
 
@@ -20,3 +20,8 @@ This system ensures that the soloist can perform freely while keeping the accomp
 1. Load the pre-recorded accompaniment.  
 2. Define synchronization points where the orchestra should stop and start.  
 3. During the performance, press the pedal or a key to resume the orchestra at the appropriate moment.  
+
+
+## Requirements
+
+Programmed using Qt6.5.3 with MSVC2019 64bit

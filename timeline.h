@@ -8,6 +8,7 @@ struct SynchroPoint
     qint64 timestamp;
     QString name;
 };
+Q_DECLARE_METATYPE(SynchroPoint)
 
 using SynchroPoints = QVector<SynchroPoint>;
 

@@ -34,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->saveButton,               &QPushButton::clicked, this, &MainWindow::handleSaveButton);
     connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
+    connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
+
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
 

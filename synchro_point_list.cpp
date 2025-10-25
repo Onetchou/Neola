@@ -5,11 +5,22 @@
 void MainWindow::updateSynchroPointList()
 {
     ui->synchroPointList->clear();
-    for (const SynchroPoint &m : m_synchroPoints)
+    for (const SynchroPoint &point : m_synchroPoints)
     {
-        QString timestamp = QString::number(m.timestamp/1000.0, 'f', 3) + " s";
-        QString name = m.name.isEmpty() ? "" : m.name + " : ";
+        QString timestampString = QString::number(point.timestamp/1000.0, 'f', 3) + " s";
+        QString nameString = point.name.isEmpty() ? "" : point.name + " : ";
 
-        ui->synchroPointList->addItem(name + timestamp);
+        QListWidgetItem* item = new QListWidgetItem(nameString + timestampString);
+        item->setData(Qt::UserRole, QVariant::fromValue(point));
+
+        ui->synchroPointList->addItem(item);
     }
+}
+
+
+
+void MainWindow::handleSynchroPointListItemDoubleClicked(QListWidgetItem* item)
+{
+    SynchroPoint point = item->data(Qt::UserRole).value<SynchroPoint>();
+    m_player->setPosition(point.timestamp);
 }

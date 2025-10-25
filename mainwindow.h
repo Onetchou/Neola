@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QListWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui 
@@ -33,6 +34,7 @@ class MainWindow : public QMainWindow
         void handlePositionSliderReleased();
         void handlePlayerPositionChanged(const qint64 pos);
         void handlePlayerDurationChanged(const qint64 dur);
+        void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
 
     private:
         Ui::MainWindow *ui;

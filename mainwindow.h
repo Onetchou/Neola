@@ -7,6 +7,8 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QListWidget>
+#include <QSettings>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui 
@@ -36,6 +38,7 @@ class MainWindow : public QMainWindow
         void handlePlayerDurationChanged(const qint64 dur);
         void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
         void handleWaitCheckbox(const bool checked);
+        void handlePreferences();
 
     private:
         Ui::MainWindow *ui;
@@ -43,6 +46,7 @@ class MainWindow : public QMainWindow
         QAudioOutput *m_audioOutput = nullptr;
         Timeline *m_timeline = nullptr;
 
+        QSettings m_settings;
         SynchroPoints m_synchroPoints;
         QString m_audioPath;
         bool m_sliderPressed = false;

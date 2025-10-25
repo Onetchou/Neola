@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "preferences_dialog.h"
+
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -10,9 +12,9 @@
 #include <QDebug>
 #include <QCheckBox>
 
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_settings(QCoreApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
 
@@ -46,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::handlePlayerPositionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::handlePlayerDurationChanged);
+
+    connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::handlePreferences);
 }
 
 
@@ -118,10 +122,11 @@ void MainWindow::handleJumpToNearestSynchroPointButton()
 
 void MainWindow::handleLoadAudioButton()
 {
+    QString default_path = m_settings.value("paths/audio", "").toString();
     QString file = QFileDialog::getOpenFileName(
         this,
         tr("Open Audio File"),
-        QString(),
+        default_path,
         tr("Audio Files (*.mp3 *.wav *.ogg);;All files (*)")
         );
 
@@ -143,7 +148,8 @@ void MainWindow::handleLoadAudioButton()
 
 void MainWindow::handleSaveButton()
 {
-    QString file = QFileDialog::getSaveFileName(this, tr("Save project"), QString(), tr("NEOLA (*.neola)"));
+    QString default_path = m_settings.value("paths/save", "").toString();
+    QString file = QFileDialog::getSaveFileName(this, tr("Save project"), default_path, tr("NEOLA (*.neola)"));
     if (file.isEmpty())
     {
         return;
@@ -177,7 +183,8 @@ void MainWindow::handleSaveButton()
 
 void MainWindow::handleOpenButton()
 {
-    QString file = QFileDialog::getOpenFileName(this, tr("Load project"), QString(), tr("NEOLA (*.neola)"));
+    QString default_path = m_settings.value("paths/open", "").toString();
+    QString file = QFileDialog::getOpenFileName(this, tr("Load project"), default_path, tr("NEOLA (*.neola)"));
     if (file.isEmpty())
     {
         return;
@@ -269,4 +276,11 @@ void MainWindow::handlePlayerDurationChanged(const qint64 dur)
 void MainWindow::handleWaitCheckbox(const bool checked)
 {
     m_waitAtSynchroPoint = checked;
+}
+
+
+void MainWindow::handlePreferences()
+{
+    PreferencesDialog dialog(m_settings, this);
+    dialog.exec();
 }

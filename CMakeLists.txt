@@ -21,6 +21,9 @@ set(PROJECT_SOURCES
         timeline.cpp
         synchro_point_list.cpp
         synchro_point.cpp
+        preferences_dialog.h 
+        preferences_dialog.cpp
+        preferences_dialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

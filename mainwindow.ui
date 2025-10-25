@@ -29,6 +29,9 @@
        </widget>
       </item>
       <item>
+       <widget class="QLineEdit" name="nameEdit"/>
+      </item>
+      <item>
        <widget class="QPushButton" name="insertStartPointButton">
         <property name="text">
          <string>Insert start point</string>

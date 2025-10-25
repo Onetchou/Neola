@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QCheckBox>
 #include <QKeyEvent>
+#include <QLineEdit>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -33,17 +34,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_player->setAudioOutput(m_audioOutput);
 
     connect(ui->actionImport_Audio,       &QAction::triggered,   this, &MainWindow::handleLoadAudioButton);
-    connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
-    connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
     connect(ui->actionInsert_stop_point,  &QAction::triggered,   this, &MainWindow::handleInsertStopPointButton);
-    connect(ui->insertStartPointButton,   &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
     connect(ui->actionInsert_start_point, &QAction::triggered,   this, &MainWindow::handleInsertStartPointButton);
-    connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
     connect(ui->actionSync,               &QAction::triggered,   this, &MainWindow::handleSyncButton);
     connect(ui->actionSave_as,            &QAction::triggered,   this, &MainWindow::handleSaveButton);
     connect(ui->actionOpen,               &QAction::triggered,   this, &MainWindow::handleOpenButton);
+    connect(ui->actionPreferences,        &QAction::triggered,   this, &MainWindow::handlePreferences);
+
+    connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
+    connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
+    connect(ui->insertStartPointButton,   &QPushButton::clicked, this, &MainWindow::handleInsertStartPointButton);
+    connect(ui->syncButton,               &QPushButton::clicked, this, &MainWindow::handleSyncButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
+    connect(ui->synchroPointList, &QListWidget::itemSelectionChanged, this, &MainWindow::handleSynchroPointListItemSelection);
+
+    connect(ui->nameEdit, &QLineEdit::returnPressed, this, &MainWindow::handleNameEdit);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
@@ -51,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::handlePlayerPositionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::handlePlayerDurationChanged);
 
-    connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::handlePreferences);
 }
 
 
@@ -305,6 +310,20 @@ void MainWindow::handlePreferences()
 {
     PreferencesDialog dialog(m_settings, this);
     dialog.exec();
+}
+
+
+void MainWindow::handleNameEdit()
+{
+    // Change the name of the selected item
+    QList<QListWidgetItem*> selected_items = ui->synchroPointList->selectedItems();
+    if (selected_items.size() == 1)
+    {
+        SynchroPoint point = selected_items.first()->data(Qt::UserRole).value<SynchroPoint>();
+        point.name = ui->nameEdit->text();
+        updateSynchroPoint(m_synchroPoints, point);
+        updateSynchroPointList();
+    }
 }
 
 

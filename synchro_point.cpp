@@ -98,3 +98,16 @@ void MainWindow::setSynchroPoints(const SynchroPoints &points)
     m_timeline->setSynchroPoint(m_synchroPoints);
     updateSynchroPointList();
 }
+
+
+void MainWindow::updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroPoint& point)
+{
+    for (SynchroPoint& sp : synchroPoints)
+    {
+        if (sp.timestamp == point.timestamp)
+        {
+            sp.name = point.name;
+            sp.type = point.type;
+        }
+    }
+}

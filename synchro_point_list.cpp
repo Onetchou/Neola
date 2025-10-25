@@ -25,3 +25,14 @@ void MainWindow::handleSynchroPointListItemDoubleClicked(QListWidgetItem* item)
     SynchroPoint point = item->data(Qt::UserRole).value<SynchroPoint>();
     changePlayerPosition(point.timestamp);
 }
+
+
+void MainWindow::handleSynchroPointListItemSelection()
+{
+    QList<QListWidgetItem*> items = ui->synchroPointList->selectedItems();
+    if (items.size() == 1)
+    {
+        SynchroPoint point = items.first()->data(Qt::UserRole).value<SynchroPoint>();
+        ui->nameEdit->setText(point.name);
+    }
+}

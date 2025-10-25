@@ -38,7 +38,9 @@ class MainWindow : public QMainWindow
         void handlePlayerPositionChanged(const qint64 pos);
         void handlePlayerDurationChanged(const qint64 dur);
         void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
+        void handleSynchroPointListItemSelection();
         void handlePreferences();
+        void handleNameEdit();
         void keyPressEvent(QKeyEvent* event) override;
 
     private:
@@ -54,6 +56,7 @@ class MainWindow : public QMainWindow
         SynchroPoint m_nextSynchroPoint;
 
         void updateSynchroPointList();
+        void updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroPoint& point);
         void sortSynchroPoints(SynchroPoints &points);
         void addSynchroPoint(const SynchroPoint &point);
         void setSynchroPoints(const SynchroPoints &points);

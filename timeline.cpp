@@ -83,17 +83,6 @@ void Timeline::paintSynchroPoints(QPainter &p, QRect groove)
             p.fillRect(r, Qt::red);
         }
 
-        if (m_nextSynchroPoint == m.timestamp)
-        {
-            p.fillRect(r, Qt::blue);
-        }
-
         p.drawText(x + 2, y - 12, m.name);
     }
-}
-
-
-void Timeline::setNextSynchroPoint(qint64 timestamp)
-{
-    m_nextSynchroPoint = timestamp;
 }

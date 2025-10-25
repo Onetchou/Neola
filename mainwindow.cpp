@@ -30,8 +30,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
-    m_waitAtSynchroPoint = ui->waitCheckbox->isChecked();
-
     connect(ui->loadAudioButton,          &QPushButton::clicked, this, &MainWindow::handleLoadAudioButton);
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertStopPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
@@ -41,8 +39,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->openButton,               &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
     connect(ui->synchroPointList, &QListWidget::itemDoubleClicked, this, &MainWindow::handleSynchroPointListItemDoubleClicked);
-
-    connect(ui->waitCheckbox, &QCheckBox::toggled, this, &MainWindow::handleWaitCheckbox);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
@@ -118,14 +114,19 @@ void MainWindow::handleInsertStartPointButton()
 
 void MainWindow::handleSyncButton()
 {
-    if (m_synchroPoints.isEmpty())
+    if (m_nextSynchroPoint.timestamp == -1 || m_synchroPoints.isEmpty())
     {
         return;
     }
 
     qint64 pos = m_player->position();
-    qint64 target = findNearestSynchroPoint(pos);
-    changePlayerPosition(target);
+
+    if (m_nextSynchroPoint.type != StartPoint)
+    {
+        findNextStartPoint(pos);
+    }
+    changePlayerPosition(m_nextSynchroPoint.timestamp);
+    playPlayer();
 }
 
 
@@ -222,7 +223,7 @@ void MainWindow::handleOpenButton()
     for (QJsonValueRef v : arr)
     {
         QJsonObject obj = v.toObject();
-        SynchroPoint point{obj["timestamp"].toInteger(), obj["name"].toString()};
+        SynchroPoint point{obj["timestamp"].toInteger(), obj["name"].toString(), obj["type"].toString() == "start" ? StartPoint : StopPoint};
         points.append(point);
     }
     sortSynchroPoints(points);
@@ -256,24 +257,28 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
 {
     if (!m_sliderPressed)
     {
-        // Display the current position
+        // Move the timeline
         int val = (m_player->duration()>0) ? int((pos*1000)/m_player->duration()) : 0;
-        m_timeline->setNextSynchroPoint(m_nextSynchroPoint);
         m_timeline->blockSignals(true);
         m_timeline->setValue(val);
         m_timeline->blockSignals(false);
+
+        // Update time label
         ui->timeLabel->setText(QString("%1 / %2").arg(QString::number(pos/1000.0,'f',2)).arg(QString::number(m_player->duration()/1000.0,'f',2)));
 
         // Check for synchro point
-        if ( m_nextSynchroPoint != -1 && pos > m_nextSynchroPoint )
+        if ( m_nextSynchroPoint.timestamp != -1 && pos > m_nextSynchroPoint.timestamp )
         {
-            if (m_waitAtSynchroPoint)
+            if (m_nextSynchroPoint.type == StopPoint)
             {
                 pausePlayer();
+                findNextStartPoint(pos);
             }
-            findNextSynchroPoint(pos);
+            else if (m_nextSynchroPoint.type == StartPoint)
+            {
+                findNextStopPoint(pos);
+            }
         }
-
     }
 }
 
@@ -281,12 +286,6 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
 void MainWindow::handlePlayerDurationChanged(const qint64 dur)
 {
     m_timeline->setDuration(dur);
-}
-
-
-void MainWindow::handleWaitCheckbox(const bool checked)
-{
-    m_waitAtSynchroPoint = checked;
 }
 
 

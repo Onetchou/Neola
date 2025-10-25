@@ -26,24 +26,46 @@ qint64 MainWindow::findNearestSynchroPoint(const qint64 posMs)
 
 void MainWindow::findNextSynchroPoint(const qint64 posMs)
 {
-    m_nextSynchroPoint = -1;
+    m_nextSynchroPoint.timestamp = -1;
+    m_nextSynchroPoint.name      = "";
+    m_nextSynchroPoint.type      = StopPoint;
+
     if (m_synchroPoints.isEmpty())
     {
         return;
     }
 
-    auto compareSynchroPointAndTimestamp = [](const SynchroPoint &sp, qint64 ts)
-    {
-        return sp.timestamp < ts;
-    };
+    auto compareSynchroPointAndTimestamp = [](const SynchroPoint &sp, qint64 ts){ return sp.timestamp < ts; };
     auto it = std::lower_bound(m_synchroPoints.begin(), m_synchroPoints.end(), posMs + 1, compareSynchroPointAndTimestamp); // +1 to avoid returning the current point
 
     if (it != m_synchroPoints.end())
     {
-        m_nextSynchroPoint =  it->timestamp;
+        m_nextSynchroPoint.timestamp =  it->timestamp;
+        m_nextSynchroPoint.name      = it->name;
+        m_nextSynchroPoint.type      = it->type;
     }
+}
 
-    m_timeline->setNextSynchroPoint(m_nextSynchroPoint);
+
+void MainWindow::findNextStopPoint(const qint64 posMs)
+{
+    qint64 pos = posMs;
+    while (m_nextSynchroPoint.timestamp != -1 && m_nextSynchroPoint.type != StopPoint)
+    {
+        findNextSynchroPoint(posMs);
+        pos = m_nextSynchroPoint.timestamp;
+    }
+}
+
+
+void MainWindow::findNextStartPoint(const qint64 posMs)
+{
+    qint64 pos = posMs;
+    while (m_nextSynchroPoint.timestamp != -1 && m_nextSynchroPoint.type != StartPoint)
+    {
+        findNextSynchroPoint(pos);
+        pos = m_nextSynchroPoint.timestamp;
+    }
 }
 
 

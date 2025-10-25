@@ -28,7 +28,6 @@ public:
 
     void setSynchroPoint (const SynchroPoints& synchroPoints);
     void setDuration(qint64 durationMs);
-    void setNextSynchroPoint(qint64 timestamp);
 
     const SynchroPoints& getSynchroPoints() const;
 
@@ -38,7 +37,6 @@ protected:
 private:
     SynchroPoints m_synchroPoints;
     qint64 m_duration = 0;
-    qint64 m_nextSynchroPoint = -1;
 
     void paintSynchroPoints(QPainter &p, QRect groove);
 };

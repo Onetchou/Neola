@@ -73,7 +73,7 @@ void Timeline::paintSynchroPoints(QPainter &p, QRect groove, QRect handle)
 
         int x = left + int(t * w) + handle.width() / 2;
 
-        QRect r(x - 3, y - 10, 6, 20);
+        QRect r(x - 2, y - 10, 4, 20);
 
         if (m.type == StartPoint)
         {

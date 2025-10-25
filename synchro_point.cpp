@@ -54,7 +54,7 @@ void MainWindow::findNextStopPoint(const qint64 posMs)
     qint64 pos = posMs;
     while (m_nextSynchroPoint.timestamp != -1 && m_nextSynchroPoint.type != StopPoint)
     {
-        findNextSynchroPoint(posMs);
+        findNextSynchroPoint(pos);
         pos = m_nextSynchroPoint.timestamp;
     }
 }

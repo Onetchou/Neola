@@ -64,6 +64,7 @@ SynchroPoint MainWindow::getSelectedSynchroPoint()
     return point;
 }
 
+
 void MainWindow::highlightSelectedSynchroPoint()
 {
     //Higlight the line corresponding to m_selectedSynchroPoint in the synchro point list
@@ -74,11 +75,30 @@ void MainWindow::highlightSelectedSynchroPoint()
         if (point.id == m_selectedSynchroPoint.id)
         {
             item->setBackground(Qt::yellow);
-            ui->synchroPointList->scrollToItem(item);
         }
         else
         {
             item->setBackground(Qt::white);
+        }
+    }
+}
+
+
+void MainWindow::scrollToNextSynchroPoint()
+{
+    // Scroll the synchro point list to make m_nextSynchroPoint visible
+    for (int i = 0; i < ui->synchroPointList->count(); ++i)
+    {
+        QListWidgetItem* item = ui->synchroPointList->item(i);
+        SynchroPoint point = item->data(Qt::UserRole).value<SynchroPoint>();
+        if (point.id == m_nextSynchroPoint.id)
+        {
+            ui->synchroPointList->scrollToItem(item, QAbstractItemView::PositionAtCenter);
+            item->setFont(QFont(item->font().family(), item->font().pointSize(), QFont::Bold));
+        }
+        else
+        {
+            item->setFont(QFont(item->font().family(), item->font().pointSize(), QFont::Normal));
         }
     }
 }

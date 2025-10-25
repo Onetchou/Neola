@@ -320,6 +320,8 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
             {
                 findNextStopPoint(pos);
             }
+
+            scrollToNextSynchroPoint();
         }
     }
 }

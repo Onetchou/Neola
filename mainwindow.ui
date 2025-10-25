@@ -138,7 +138,7 @@
    </widget>
    <widget class="QMenu" name="menuSync_points">
     <property name="title">
-     <string>Sync points</string>
+     <string>Points</string>
     </property>
     <addaction name="actionInsert_stop_point"/>
     <addaction name="actionInsert_start_point"/>

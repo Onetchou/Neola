@@ -39,6 +39,7 @@ class MainWindow : public QMainWindow
         void handlePlayerDurationChanged(const qint64 dur);
         void handleSynchroPointListItemDoubleClicked(QListWidgetItem* item);
         void handlePreferences();
+        void keyPressEvent(QKeyEvent* event) override;
 
     private:
         Ui::MainWindow *ui;

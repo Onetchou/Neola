@@ -11,6 +11,8 @@
 #include <QPainter>
 #include <QDebug>
 #include <QCheckBox>
+#include <QKeyEvent>
+
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -114,12 +116,19 @@ void MainWindow::handleInsertStartPointButton()
 
 void MainWindow::handleSyncButton()
 {
+    qint64 pos = m_player->position();
+
+    if (pos == 0)
+    {
+        // Clicking "Sync" at the beginning of the audio file starts it
+        playPlayer();
+        return;
+    }
+
     if (m_nextSynchroPoint.timestamp == -1 || m_synchroPoints.isEmpty())
     {
         return;
     }
-
-    qint64 pos = m_player->position();
 
     if (m_nextSynchroPoint.type != StartPoint)
     {
@@ -293,4 +302,13 @@ void MainWindow::handlePreferences()
 {
     PreferencesDialog dialog(m_settings, this);
     dialog.exec();
+}
+
+
+void MainWindow::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Space)
+    {
+        handleSyncButton();
+    }
 }

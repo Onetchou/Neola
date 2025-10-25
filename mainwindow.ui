@@ -17,7 +17,7 @@
       <item>
        <widget class="QPushButton" name="loadButton">
         <property name="text">
-         <string>Charger piste</string>
+         <string>Select Audio</string>
         </property>
        </widget>
       </item>
@@ -29,30 +29,30 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="insertMarkerButton">
+       <widget class="QPushButton" name="insertSynchroPointButton">
         <property name="text">
-         <string>Insérer marqueur</string>
+         <string>Insert Synchro Point</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="jumpMarkerButton">
+       <widget class="QPushButton" name="syncButton">
         <property name="text">
-         <string>Aller au marqueur proche</string>
+         <string>Sync</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="saveMarkersButton">
+       <widget class="QPushButton" name="saveButton">
         <property name="text">
-         <string>Sauvegarder marqueurs</string>
+         <string>Save</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="loadMarkersButton">
+       <widget class="QPushButton" name="openButton">
         <property name="text">
-         <string>Charger marqueurs</string>
+         <string>Open</string>
         </property>
        </widget>
       </item>
@@ -71,7 +71,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="markerList"/>
+       <widget class="QListWidget" name="synchroPointList"/>
       </item>
      </layout>
     </item>

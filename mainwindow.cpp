@@ -9,131 +9,119 @@
 #include <QPainter>
 #include <QDebug>
 #include <algorithm>
-#include <QStyle>
-#include <QStyleOptionSlider>
 #include <QDebug>
-#include <iostream>
 
 
-// MarkerSlider implementation
-MarkerSlider::MarkerSlider(QWidget *parent): QSlider(Qt::Horizontal, parent) 
-{ 
-    setMinimum(0);
-    setMaximum(1000); 
-}
-
-
-void MarkerSlider::setMarkers(const QVector<Marker> &markers) 
-{ 
-    m_markers = markers; update(); 
-}
-
-
-void MarkerSlider::setDuration(qint64 durationMs) 
-{ 
-    m_duration = durationMs; update(); 
-}
-
-
-void MarkerSlider::paintEvent(QPaintEvent *ev)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
 {
-    QSlider::paintEvent(ev);
-    if (m_markers.isEmpty() || m_duration <= 0) 
-    {
-        return;
-    }
+    ui->setupUi(this);
 
-    QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
+    // Setup the timeline
+    QWidget *place = ui->positionWidget;
+    m_timeline = new Timeline(this);
+    QHBoxLayout *lay = new QHBoxLayout(place);
+    lay->setContentsMargins(0,0,0,0);
+    lay->addWidget(m_timeline);
 
+    // Setup the media player
+    m_player = new QMediaPlayer(this);
+    m_audioOutput = new QAudioOutput(this);
+    m_player->setAudioOutput(m_audioOutput);
 
-    QStyleOptionSlider opt;
-    initStyleOption(&opt);
-    QRect groove = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderGroove, this);
-    int left = groove.left();
-    int right = groove.right();
-    int w = right - left;
+    connect(ui->loadButton, &QPushButton::clicked, this, &MainWindow::handleLoadButton);
+    connect(ui->playButton, &QPushButton::clicked, this, &MainWindow::handlePlayButton);
+    connect(ui->insertSynchroPointButton, &QPushButton::clicked, this, &MainWindow::handleInsertSynchroPointButton);
+    connect(ui->syncButton, &QPushButton::clicked, this, &MainWindow::handleJumpToNearestSynchroPointButton);
+    connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::handleSaveButton);
+    connect(ui->openButton, &QPushButton::clicked, this, &MainWindow::handleOpenButton);
 
+    connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
+    connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
 
-    for (const Marker &m : m_markers) 
-    {
-        double t = double(m.positionMs) / m_duration;
-        if (t > 1.0) t = 1.0;
-        int x = left + int(t * w);
-        int y = groove.center().y();
-        QRect r(x - 3, y - 10, 6, 20);
-        p.fillRect(r, Qt::red);
-        p.drawText(x + 2, y - 12, QString::number(m.measureNumber));
-    }
+    connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::handlePlayerPositionChanged);
+    connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::handlePlayerDurationChanged);
 }
 
 
-void MainWindow::on_loadButtonClicked()
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+
+void MainWindow::handleLoadButton()
 {
      QString file = QFileDialog::getOpenFileName(
         this,
-        tr("Ouvrir piste audio"),
+        tr("Open Audio File"),
         QString(),
-        tr("Fichiers audio (*.mp3 *.wav *.flac *.ogg);;Tous les fichiers (*)")
+        tr("Audio Files (*.mp3 *.wav *.ogg);;All files (*)")
         );
 
-    qDebug() << "Fichier choisi :" << file;
+    qDebug() << "Chosen file :" << file;
 
     if (file.isEmpty())
     {
          return;
     }
 
-    m_audioPath = file;  // Sauvegarde le chemin
-    m_player->setSource(QUrl::fromLocalFile(file));  // Charge dans le player
-    m_player->stop();  // Assure que la lecture commence depuis le début
+    m_audioPath = file;
+    m_player->setSource(QUrl::fromLocalFile(file));
+    m_player->stop(); // Start from the beginning of the file
 
-    ui->playButton->setText(tr("Play"));  // Réinitialise le bouton Play
-    m_nextMeasureNumber = 1;  // Réinitialise la numérotation des marqueurs
+    ui->playButton->setText(tr("Play"));
 }
 
 
-void MainWindow::on_saveMarkersButtonClicked()
+void MainWindow::handleSaveButton()
 {
-    QString file = QFileDialog::getSaveFileName(this, tr("Sauvegarder marqueurs"), QString(), tr("JSON (*.json)"));
+    QString file = QFileDialog::getSaveFileName(this, tr("Save project"), QString(), tr("NEOLA (*.neola)"));
     if (file.isEmpty()) 
     {
         return;
     }
+
     QJsonObject root;
     root["audioPath"] = m_audioPath;
+
     QJsonArray arr;
-    for (const Marker &m : m_markers) 
+    for (const SynchroPoint &m : m_synchroPoints)
     {
         QJsonObject obj;
-        obj["pos"] = QJsonValue::fromVariant(QVariant::fromValue(m.positionMs));
-        obj["measure"] = m.measureNumber;
+        obj["timestamp"] = m.timestamp;
+        obj["name"] = m.name;
         arr.append(obj);
     }
-    root["markers"] = arr;
+    root["synchroPoints"] = arr;
+
     QJsonDocument doc(root);
     QFile f(file);
     if (!f.open(QIODevice::WriteOnly)) 
     { 
-        qWarning() << "Impossible d'ouvrir" << file; return; 
+        qWarning() << "Unable to open " << file;
+        return;
     }
+
     f.write(doc.toJson());
     f.close();
 }
 
 
-void MainWindow::on_loadMarkersButtonClicked()
+void MainWindow::handleOpenButton()
 {
-    QString file = QFileDialog::getOpenFileName(this, tr("Charger marqueurs"), QString(), tr("JSON (*.json)"));
+    QString file = QFileDialog::getOpenFileName(this, tr("Load project"), QString(), tr("NEOLA (*.neola)"));
     if (file.isEmpty()) 
     {
         return;
     }
+
     QFile f(file);
     if (!f.open(QIODevice::ReadOnly))
     { 
         return;
     }
+
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
     if (!doc.isObject()) 
     {
@@ -142,93 +130,94 @@ void MainWindow::on_loadMarkersButtonClicked()
 
     QJsonObject root = doc.object();
     m_audioPath = root.value("audioPath").toString();
-    QJsonArray arr = root.value("markers").toArray();
-    m_markers.clear();
-    m_nextMeasureNumber = 1;
-    for (auto v : arr) 
+
+    QJsonArray arr = root.value("synchroPoints").toArray();
+    m_synchroPoints.clear();
+    for (QJsonValueRef v : arr)
     {
         QJsonObject obj = v.toObject();
-        Marker m{ obj["pos"].toVariant().toLongLong(), obj["measure"].toInt() };
-        m_markers.append(m);
-        if (m.measureNumber >= m_nextMeasureNumber) 
-        {
-            m_nextMeasureNumber = m.measureNumber + 1;
-        }
+        SynchroPoint m{obj["timestamp"].toInteger(), obj["name"].toString()};
+        m_synchroPoints.append(m);
     }
-    std::sort(m_markers.begin(), m_markers.end(), [](const Marker &a, const Marker &b){ return a.positionMs < b.positionMs; });
-    m_markerSlider->setMarkers(m_markers);
-    updateMarkerList();
+    sortSynchroPoints();
+
+    m_timeline->setSynchroPoint(m_synchroPoints);
+    updateSynchroPointList();
+
     if (!m_audioPath.isEmpty()) 
     {
         m_player->setSource(QUrl::fromLocalFile(m_audioPath));
+        m_player->stop(); // Start from the beginning of the file
     }
 }
 
 
-void MainWindow::on_positionSliderPressed()
+void MainWindow::handlePositionSliderPressed()
 { 
     m_sliderPressed = true; 
 }
 
 
-void MainWindow::on_positionSliderReleased()
+void MainWindow::handlePositionSliderReleased()
 { 
-    m_sliderPressed = false; qint64 pos = (m_player->duration() * qint64(m_markerSlider->value())) / 1000; m_player->setPosition(pos); 
+    m_sliderPressed = false;
+    qint64 pos = (m_player->duration() * qint64(m_timeline->value())) / 1000;
+    m_player->setPosition(pos);
 }
 
 
-void MainWindow::on_playerPositionChanged(qint64 pos)
+void MainWindow::handlePlayerPositionChanged(qint64 pos)
 {
     if (!m_sliderPressed) 
     {
         int val = (m_player->duration()>0) ? int((pos*1000)/m_player->duration()) : 0;
-        m_markerSlider->blockSignals(true);
-        m_markerSlider->setValue(val);
-        m_markerSlider->blockSignals(false);
+        m_timeline->blockSignals(true);
+        m_timeline->setValue(val);
+        m_timeline->blockSignals(false);
         ui->timeLabel->setText(QString("%1 / %2").arg(QString::number(pos/1000.0,'f',2)).arg(QString::number(m_player->duration()/1000.0,'f',2)));
     }
 }
 
 
-void MainWindow::on_playerDurationChanged(qint64 dur)
+void MainWindow::handlePlayerDurationChanged(qint64 dur)
 { 
-    m_markerSlider->setDuration(dur); 
+    m_timeline->setDuration(dur);
 }
 
 
-void MainWindow::updateMarkerList()
+void MainWindow::updateSynchroPointList()
 {
-    ui->markerList->clear();
-    for (const Marker &m : m_markers)
+    ui->synchroPointList->clear();
+    for (const SynchroPoint &m : m_synchroPoints)
     {
-         ui->markerList->addItem("Mesure " + QString::number(m.measureNumber) + 
-                            " : " + QString::number(m.positionMs/1000.0, 'f', 3) + " s");
+         ui->synchroPointList->addItem("Name " + m.name + " : " + QString::number(m.timestamp/1000.0, 'f', 3) + " s");
     }
 }
 
 
-qint64 MainWindow::findNearestMarker(qint64 posMs)
+qint64 MainWindow::findNearestSynchroPoint(qint64 posMs)
 {
-    if (m_markers.isEmpty())
+    if (m_synchroPoints.isEmpty())
     {
         return posMs;
     }
-    qint64 best = m_markers.first().positionMs;
+
+    qint64 best = m_synchroPoints.first().timestamp;
     qint64 bestDist = llabs(best-posMs);
-    for (const Marker &m : m_markers)
+    for (const SynchroPoint &m : m_synchroPoints)
     {
-        qint64 d = llabs(m.positionMs-posMs);
+        qint64 d = llabs(m.timestamp-posMs);
         if (d < bestDist) 
         { 
             bestDist=d; 
-            best=m.positionMs; 
+            best=m.timestamp;
         }
     }
     return best;
 }
 
 
-void MainWindow::on_playButtonClicked()
+void MainWindow::handlePlayButton()
 {
     if (m_player->playbackState() != QMediaPlayer::PlayingState) 
     {
@@ -242,71 +231,37 @@ void MainWindow::on_playButtonClicked()
     }
 }
 
-
-void MainWindow::on_insertMarkerButtonClicked()
+void MainWindow::sortSynchroPoints()
 {
-    qint64 pos = m_player->position();
-    Marker m{ pos, m_nextMeasureNumber++ };
-    m_markers.append(m);
+    auto compareSynchroPoints = [](const SynchroPoint &a, const SynchroPoint &b)
+    {
+        return a.timestamp < b.timestamp;
+    };
 
-    // Tri des marqueurs
-    std::sort(m_markers.begin(), m_markers.end(), [](const Marker &a, const Marker &b) {
-        return a.positionMs < b.positionMs;
-    });
-
-    m_markerSlider->setMarkers(m_markers);
-    updateMarkerList();
+    std::sort(m_synchroPoints.begin(), m_synchroPoints.end(), compareSynchroPoints);
 }
 
-void MainWindow::on_jumpMarkerButtonClicked()
+
+void MainWindow::handleInsertSynchroPointButton()
 {
-    if (m_markers.isEmpty()) 
+    qint64 pos = m_player->position();
+    SynchroPoint m{ pos, "" };
+    m_synchroPoints.append(m);
+    sortSynchroPoints();
+
+    m_timeline->setSynchroPoint(m_synchroPoints);
+    updateSynchroPointList();
+}
+
+void MainWindow::handleJumpToNearestSynchroPointButton()
+{
+    if (m_synchroPoints.isEmpty())
     {
         return;
     }
+
     qint64 pos = m_player->position();
-    qint64 target = findNearestMarker(pos);
+    qint64 target = findNearestSynchroPoint(pos);
     m_player->setPosition(target);
 }
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
-    qDebug() << "TESTESTESTESTESTEST";
-    std::cout << "PIPOPIPOPIPO" << std::endl;
-    ui->setupUi(this);
-
-    QWidget *place = ui->positionWidget;
-    m_markerSlider = new MarkerSlider(this);
-    QHBoxLayout *lay = new QHBoxLayout(place);
-    lay->setContentsMargins(0,0,0,0);
-    lay->addWidget(m_markerSlider);
-
-
-    connect(ui->loadButton, &QPushButton::clicked, this, &MainWindow::on_loadButtonClicked);
-    connect(ui->playButton, &QPushButton::clicked, this, &MainWindow::on_playButtonClicked);
-    connect(ui->insertMarkerButton, &QPushButton::clicked, this, &MainWindow::on_insertMarkerButtonClicked);
-    connect(ui->jumpMarkerButton, &QPushButton::clicked, this, &MainWindow::on_jumpMarkerButtonClicked);
-    connect(ui->saveMarkersButton, &QPushButton::clicked, this, &MainWindow::on_saveMarkersButtonClicked);
-    connect(ui->loadMarkersButton, &QPushButton::clicked, this, &MainWindow::on_loadMarkersButtonClicked);
-
-
-    connect(m_markerSlider, &QSlider::sliderPressed, this, &MainWindow::on_positionSliderPressed);
-    connect(m_markerSlider, &QSlider::sliderReleased, this, &MainWindow::on_positionSliderReleased);
-
-
-    m_player = new QMediaPlayer(this);
-    m_audioOutput = new QAudioOutput(this);
-    m_player->setAudioOutput(m_audioOutput);
-
-
-    connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::on_playerPositionChanged);
-    connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::on_playerDurationChanged);
-
-
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <algorithm>
+#include <QMessageBox>
 
 qint64 MainWindow::findNearestSynchroPoint(const qint64 posMs)
 {
@@ -143,6 +144,12 @@ void MainWindow::updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroP
 }
 
 
+void MainWindow::deleteSynchroPoint(const SynchroPoint& point)
+{
+    m_synchroPoints.removeOne(point);
+}
+
+
 int MainWindow::getNewId()
 {
     // Find the biggest id
@@ -156,4 +163,23 @@ int MainWindow::getNewId()
     }
 
     return bestId + 1;
+}
+
+
+bool MainWindow::checkUniqueIds(const SynchroPoints &points)
+{
+    QSet<int> seenIds;
+    for (const SynchroPoint &p : points) {
+        if (seenIds.contains(p.id))
+        {
+            QMessageBox::critical(
+                this,
+                "Id Error",
+                QString("Multiple points have the same id : %1").arg(p.id)
+                );
+            return false;
+        }
+        seenIds.insert(p.id);
+    }
+    return true;
 }

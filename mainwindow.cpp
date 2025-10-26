@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QMessageBox>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -23,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     ui->setupUi(this);
 
     setCurrentFile(QString());
-    m_selectedSynchroPoint = SynchroPoint{-1, "", StopPoint, 0};
 
     // Setup the timeline
     QWidget *place = ui->positionWidget;
@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(ui->actionPreferences,        &QAction::triggered,   this, &MainWindow::handlePreferences);
     connect(ui->actionNew,                &QAction::triggered,   this, &MainWindow::handleNew);
     connect(ui->actionSave,               &QAction::triggered,   this, &MainWindow::handleSave);
+    connect(ui->actionDelete,             &QAction::triggered,   this, &MainWindow::handleDeletePoint);
 
     connect(ui->playButton,               &QPushButton::clicked, this, &MainWindow::handlePlayButton);
     connect(ui->insertStopPointButton,    &QPushButton::clicked, this, &MainWindow::handleInsertStopPointButton);
@@ -166,7 +167,7 @@ void MainWindow::handleSyncButton()
         return;
     }
 
-    if (m_nextSynchroPoint.timestamp == -1 || m_synchroPoints.isEmpty())
+    if (m_nextSynchroPoint.id == -1 || m_nextSynchroPoint.timestamp == -1 || m_synchroPoints.isEmpty())
     {
         return;
     }
@@ -308,6 +309,12 @@ void MainWindow::handleOpenButton()
     }
     sortSynchroPoints(points);
 
+    bool idAreUnique = checkUniqueIds(points);
+    if (!idAreUnique)
+    {
+        return;
+    }
+
     setSynchroPoints(points);
 
     if (!m_audioPath.isEmpty())
@@ -386,7 +393,7 @@ void MainWindow::handleNew()
     m_audioPath.clear();
     m_player->stop();
     m_synchroPoints.clear();
-    m_selectedSynchroPoint = SynchroPoint{ -1, "", StartPoint, -1 };
+    m_selectedSynchroPoint = SynchroPoint();
     updateSynchroPointList();
     m_timeline->setSynchroPoints(m_synchroPoints);
     m_timeline->setValue(0);
@@ -419,6 +426,30 @@ void MainWindow::handleTimestampSpinbox()
         updateSynchroPointList();
         m_timeline->setSynchroPoints(m_synchroPoints);
         findNextSynchroPoint(m_player->position());
+    }
+}
+
+
+void MainWindow::handleDeletePoint()
+{
+    if (m_selectedSynchroPoint.timestamp != -1)
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::warning(
+            this,
+            "Delete synchro point ?",
+            "Delete " + m_selectedSynchroPoint.name + " at " + QString::number(m_selectedSynchroPoint.timestamp) + " ms ?",
+            QMessageBox::Yes | QMessageBox::No
+            );
+
+        if (reply == QMessageBox::Yes)
+        {
+            deleteSynchroPoint(m_selectedSynchroPoint);
+            m_selectedSynchroPoint = SynchroPoint();
+            updateSynchroPointList();
+            m_timeline->setSynchroPoints(m_synchroPoints);
+            findNextSynchroPoint(m_player->position());
+        }
     }
 }
 
@@ -494,5 +525,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if (event->key() == Qt::Key_S && event->modifiers() & Qt::ControlModifier)
     {
         handleSave();
+    }
+    else if (event->key() == Qt::Key_Delete)
+    {
+        handleDeletePoint();
     }
 }

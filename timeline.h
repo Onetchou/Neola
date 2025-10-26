@@ -11,12 +11,17 @@ enum SynchroPointType
 
 struct SynchroPoint
 {
-    qint64 timestamp;
-    QString name;
-    SynchroPointType type;
-    int id;
+    qint64 timestamp = -1;
+    QString name = "";
+    SynchroPointType type = StopPoint;
+    int id = -1;
 };
 Q_DECLARE_METATYPE(SynchroPoint)
+
+inline bool operator==(const SynchroPoint &a, const SynchroPoint &b)
+{
+    return a.id == b.id;
+}
 
 using SynchroPoints = QVector<SynchroPoint>;
 

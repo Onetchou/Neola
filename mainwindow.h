@@ -46,6 +46,7 @@ class MainWindow : public QMainWindow
         void handleTimestampSpinbox();
         void handlePreviousPointButton();
         void handleRestartButton();
+        void handleDeletePoint();
         void keyPressEvent(QKeyEvent* event) override;
 
     private:
@@ -64,6 +65,7 @@ class MainWindow : public QMainWindow
 
         void updateSynchroPointList();
         void updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroPoint& point);
+        void deleteSynchroPoint(const SynchroPoint& point);
         void sortSynchroPoints(SynchroPoints &points);
         void addSynchroPoint(const SynchroPoint &point);
         void setSynchroPoints(const SynchroPoints &points);
@@ -81,5 +83,6 @@ class MainWindow : public QMainWindow
         void highlightSelectedSynchroPoint();
         void scrollToNextSynchroPoint();
         int getNewId();
+        bool checkUniqueIds(const SynchroPoints &points);
 };
 #endif // MAINWINDOW_H

@@ -44,6 +44,7 @@ class MainWindow : public QMainWindow
         void handleNew();
         void handleNameEdit();
         void handleTimestampSpinbox();
+        void handleTimingCorrectionSpinbox();
         void handlePreviousPointButton();
         void handleRestartButton();
         void handleDeletePoint();
@@ -62,6 +63,7 @@ class MainWindow : public QMainWindow
         bool m_sliderPressed = false;
         SynchroPoint m_nextSynchroPoint;
         SynchroPoint m_selectedSynchroPoint;
+        qint64 m_timingCorrection = 0;
 
         void updateSynchroPointList();
         void updateSynchroPoint(SynchroPoints& synchroPoints, const SynchroPoint& point);
@@ -69,7 +71,7 @@ class MainWindow : public QMainWindow
         void sortSynchroPoints(SynchroPoints &points);
         void addSynchroPoint(const SynchroPoint &point);
         void setSynchroPoints(const SynchroPoints &points);
-        void changePlayerPosition(const qint64 pos);
+        void changePlayerPosition(qint64 pos);
         void playPlayer();
         void pausePlayer();
         void setCurrentFile(QString file);

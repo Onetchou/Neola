@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
 
+    m_timingCorrection = m_settings.value("timing_correction", 0).toLongLong();
+    ui->timingCorrectionSpinBox->setValue(m_timingCorrection);
     setCurrentFile(QString());
 
     // Setup the timeline
@@ -68,14 +70,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(ui->nameEdit, &QLineEdit::returnPressed, this, &MainWindow::handleNameEdit);
 
-    connect(ui->timestampSpinBox, &QSpinBox::valueChanged, this, &MainWindow::handleTimestampSpinbox);
+    connect(ui->timestampSpinBox,        &QSpinBox::valueChanged, this, &MainWindow::handleTimestampSpinbox);
+    connect(ui->timingCorrectionSpinBox, &QSpinBox::valueChanged, this, &MainWindow::handleTimingCorrectionSpinbox);
 
     connect(m_timeline, &QSlider::sliderPressed, this, &MainWindow::handlePositionSliderPressed);
     connect(m_timeline, &QSlider::sliderReleased, this, &MainWindow::handlePositionSliderReleased);
 
     connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::handlePlayerPositionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::handlePlayerDurationChanged);
-
 }
 
 
@@ -85,8 +87,17 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::changePlayerPosition(const qint64 pos)
+void MainWindow::changePlayerPosition(qint64 pos)
 {
+    if (pos > m_player->duration())
+    {
+        pos = m_player->duration();
+    }
+    if (pos < 0)
+    {
+        pos = 0;
+    }
+
     m_player->setPosition(pos);
     findNextSynchroPoint(pos);
 }
@@ -149,7 +160,7 @@ void MainWindow::handlePreviousPointButton()
     SynchroPoint point = findPreviousSynchroPoint(pos);
     if (point.timestamp != -1)
     {
-        changePlayerPosition(point.timestamp);
+        changePlayerPosition(point.timestamp + m_timingCorrection);
     }
 }
 
@@ -171,7 +182,7 @@ void MainWindow::handleSyncButton()
         return;
     }
 
-    if (m_nextSynchroPoint.id == -1 || m_nextSynchroPoint.timestamp == -1 || m_synchroPoints.isEmpty())
+    if (m_nextSynchroPoint.id == -1 || m_synchroPoints.isEmpty())
     {
         return;
     }
@@ -180,7 +191,13 @@ void MainWindow::handleSyncButton()
     {
         findNextStartPoint(pos);
     }
-    changePlayerPosition(m_nextSynchroPoint.timestamp);
+
+    if (m_nextSynchroPoint.id == -1)
+    {
+        return;
+    }
+
+    changePlayerPosition(m_nextSynchroPoint.timestamp + m_timingCorrection);
     playPlayer();
 }
 
@@ -361,7 +378,7 @@ void MainWindow::handlePlayerPositionChanged(const qint64 pos)
         ui->timeLabel->setText(QString("%1 / %2").arg(QString::number(pos/1000.0,'f',2)).arg(QString::number(m_player->duration()/1000.0,'f',2)));
 
         // Check for synchro point
-        if ( m_nextSynchroPoint.timestamp != -1 && pos > m_nextSynchroPoint.timestamp )
+        if ( m_nextSynchroPoint.timestamp != -1 && pos > m_nextSynchroPoint.timestamp + m_timingCorrection )
         {
             if (m_nextSynchroPoint.type == StopPoint)
             {
@@ -433,6 +450,13 @@ void MainWindow::handleTimestampSpinbox()
         m_timeline->setSynchroPoints(m_synchroPoints);
         findNextSynchroPoint(m_player->position());
     }
+}
+
+
+void MainWindow::handleTimingCorrectionSpinbox()
+{
+    m_timingCorrection = ui->timingCorrectionSpinBox->value();
+    m_settings.setValue("timing_correction", m_timingCorrection);
 }
 
 
@@ -512,15 +536,15 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     {
         handleRestartButton();
     }
-    else if (event->key() == Qt::Key_I)
+    else if (event->key() == Qt::Key_I && event->modifiers() & Qt::ControlModifier)
     {
         handleLoadAudioButton();
     }
-    else if (event->key() == Qt::Key_N)
+    else if (event->key() == Qt::Key_N && event->modifiers() & Qt::ControlModifier)
     {
         handleNew();
     }
-    else if (event->key() == Qt::Key_O)
+    else if (event->key() == Qt::Key_O && event->modifiers() & Qt::ControlModifier)
     {
         handleOpenButton();
     }

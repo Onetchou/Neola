@@ -27,10 +27,7 @@ qint64 MainWindow::findNearestSynchroPoint(const qint64 posMs)
 
 void MainWindow::findNextSynchroPoint(const qint64 posMs)
 {
-    m_nextSynchroPoint.timestamp = -1;
-    m_nextSynchroPoint.name      = "";
-    m_nextSynchroPoint.type      = StopPoint;
-    m_nextSynchroPoint.id        = -1;
+    m_nextSynchroPoint = SynchroPoint();
 
     if (m_synchroPoints.isEmpty())
     {
@@ -75,10 +72,6 @@ void MainWindow::findNextStartPoint(const qint64 posMs)
 SynchroPoint MainWindow::findPreviousSynchroPoint(const qint64 posMs)
 {
     SynchroPoint previousSynchroPoint;
-    previousSynchroPoint.timestamp = -1;
-    previousSynchroPoint.name      = "";
-    previousSynchroPoint.type      = StopPoint;
-    previousSynchroPoint.id        = -1;
 
     if (m_synchroPoints.isEmpty())
     {

@@ -25,7 +25,7 @@ void MainWindow::updateSynchroPointList()
 void MainWindow::handleSynchroPointListItemDoubleClicked(QListWidgetItem* item)
 {
     SynchroPoint point = item->data(Qt::UserRole).value<SynchroPoint>();
-    changePlayerPosition(point.timestamp);
+    changePlayerPosition(point.timestamp + m_timingCorrection);
 }
 
 

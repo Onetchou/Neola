@@ -13,7 +13,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="label_2">
+     <widget class="QLabel" name="neolaLabel">
       <property name="font">
        <font>
         <pointsize>28</pointsize>
@@ -36,11 +36,41 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="playButton">
-      <property name="text">
-       <string>Play (P)</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="playButton">
+        <property name="text">
+         <string>Play (P)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Global timing correction :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="timingCorrectionSpinBox">
+        <property name="suffix">
+         <string>ms</string>
+        </property>
+        <property name="minimum">
+         <number>-9999999</number>
+        </property>
+        <property name="maximum">
+         <number>9999999</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="topRow">
@@ -168,12 +198,12 @@
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>Open project (O)</string>
+    <string>Open project (Ctrl+O)</string>
    </property>
   </action>
   <action name="actionImport_Audio">
    <property name="text">
-    <string>Import Audio (I)</string>
+    <string>Import Audio (Ctrl+I)</string>
    </property>
   </action>
   <action name="actionInsert_stop_point">
@@ -193,7 +223,7 @@
   </action>
   <action name="actionNew">
    <property name="text">
-    <string>New (N)</string>
+    <string>New (Ctrl+N)</string>
    </property>
   </action>
   <action name="actionSave">

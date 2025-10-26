@@ -37,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 
+    ui->playButton->setStyleSheet("QPushButton { background-color : #ef9a9a; }");
+
     ui->synchroPointList->setFocusPolicy(Qt::NoFocus);
     ui->playButton->setFocusPolicy(Qt::NoFocus);
     ui->insertStartPointButton->setFocusPolicy(Qt::NoFocus);
@@ -96,6 +98,7 @@ void MainWindow::pausePlayer()
     {
         m_player->pause();
         ui->playButton->setText(tr("Play (P)"));
+        ui->playButton->setStyleSheet("QPushButton { background-color : #ef9a9a; }");
     }
 }
 
@@ -106,6 +109,7 @@ void MainWindow::playPlayer()
     {
         m_player->play();
         ui->playButton->setText(tr("Pause (P)"));
+        ui->playButton->setStyleSheet("QPushButton { background-color : #a9ef9a; }");
     }
 }
 
@@ -202,6 +206,7 @@ void MainWindow::handleLoadAudioButton()
     findNextSynchroPoint(0);
 
     ui->playButton->setText(tr("Play"));
+    ui->playButton->setStyleSheet("QPushButton { background-color : #ef9a9a; }");
 }
 
 
@@ -399,6 +404,7 @@ void MainWindow::handleNew()
     m_timeline->setValue(0);
     ui->timeLabel->setText("0.00 / 0.00");
     ui->playButton->setText(tr("Play"));
+    ui->playButton->setStyleSheet("QPushButton { background-color : #ef9a9a; }");
     ui->timestampSpinBox->setValue(0);
     ui->nameEdit->setText("");
 }
